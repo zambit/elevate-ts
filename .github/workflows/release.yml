@@ -1,0 +1,63 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: 'Version bump type'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    name: Create Release PR
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build and test
+        run: pnpm build && pnpm test
+
+      - name: Create changeset
+        run: |
+          cat > .changeset/release-${{ github.run_id }}.md << 'EOF'
+          ---
+          "elevate-ts": ${{ github.event.inputs.bump }}
+          ---
+          Release version bump: ${{ github.event.inputs.bump }}
+          EOF
+
+      - name: Version packages
+        run: pnpm changeset:version
+
+      - name: Create Release PR
+        uses: peter-evans/create-pull-request@v5
+        with:
+          commit-message: 'release: version packages'
+          title: 'release: version packages'
+          body: |
+            This PR bumps the version and updates CHANGELOG.md.
+            
+            When merged, the GitHub Actions `publish.yml` workflow will publish to npm.
+          branch: release/${{ github.run_id }}
+          delete-branch: true
