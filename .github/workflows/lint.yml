@@ -1,0 +1,39 @@
+name: Lint & Type Check
+
+on:
+  push:
+    branches: [main, initial]
+  pull_request:
+    branches: [main, initial]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    name: eslint + prettier + typescript
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Type check
+        run: pnpm check:types
+
+      - name: Lint TypeScript
+        run: pnpm lint:check
+
+      - name: Lint markdown
+        run: pnpm lint:md
+
+      - name: Check no Node builtins
+        run: pnpm check:nodeps
