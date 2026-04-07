@@ -1,0 +1,29 @@
+# CODEOWNERS file
+#
+# This file defines code ownership and auto-assigns reviewers for PRs.
+# Syntax: pattern @owner1 @owner2
+
+# Root and config files
+* @zambit
+
+# All TypeScript code
+/src/ @zambit
+/tests/ @zambit
+
+# Documentation
+/docs/ @zambit
+/learning/ @zambit
+/*.md @zambit
+
+# Samples and examples
+/samples/ @zambit
+
+# GitHub and CI/CD
+/.github/ @zambit
+
+# Build and tooling
+/scripts/ @zambit
+tsconfig*.json @zambit
+vitest.config.ts @zambit
+package.json @zambit
+pnpm-workspace.yaml @zambit
