@@ -1,0 +1,5 @@
+packages:
+  - '.'
+  - 'samples/spa-examples/*'
+  - 'samples/worker-examples/*'
+  - 'samples/fullstack-examples/*'

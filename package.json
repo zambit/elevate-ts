@@ -1,0 +1,101 @@
+{
+  "name": "elevate-ts",
+  "version": "0.1.0",
+  "description": "Point-free, data-last functional programming library for TypeScript. Fantasy Land 5 compliant. Zero Node.js dependencies. Cloudflare Workers ready.",
+  "license": "AGPL-3.0-or-later",
+  "type": "module",
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
+  "types": "dist/esm/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js",
+      "types": "./dist/esm/index.d.ts"
+    },
+    "./Maybe": {
+      "import": "./dist/esm/Maybe.js",
+      "require": "./dist/cjs/Maybe.js",
+      "types": "./dist/esm/Maybe.d.ts"
+    },
+    "./Either": {
+      "import": "./dist/esm/Either.js",
+      "require": "./dist/cjs/Either.js",
+      "types": "./dist/esm/Either.d.ts"
+    },
+    "./Validation": {
+      "import": "./dist/esm/Validation.js",
+      "require": "./dist/cjs/Validation.js",
+      "types": "./dist/esm/Validation.d.ts"
+    },
+    "./Reader": {
+      "import": "./dist/esm/Reader.js",
+      "require": "./dist/cjs/Reader.js",
+      "types": "./dist/esm/Reader.d.ts"
+    },
+    "./State": {
+      "import": "./dist/esm/State.js",
+      "require": "./dist/cjs/State.js",
+      "types": "./dist/esm/State.d.ts"
+    },
+    "./Tuple": {
+      "import": "./dist/esm/Tuple.js",
+      "require": "./dist/cjs/Tuple.js",
+      "types": "./dist/esm/Tuple.d.ts"
+    },
+    "./NonEmptyList": {
+      "import": "./dist/esm/NonEmptyList.js",
+      "require": "./dist/cjs/NonEmptyList.js",
+      "types": "./dist/esm/NonEmptyList.d.ts"
+    },
+    "./List": {
+      "import": "./dist/esm/List.js",
+      "require": "./dist/cjs/List.js",
+      "types": "./dist/esm/List.d.ts"
+    },
+    "./Function": {
+      "import": "./dist/esm/Function.js",
+      "require": "./dist/cjs/Function.js",
+      "types": "./dist/esm/Function.d.ts"
+    },
+    "./MaybeAsync": {
+      "import": "./dist/esm/MaybeAsync.js",
+      "require": "./dist/cjs/MaybeAsync.js",
+      "types": "./dist/esm/MaybeAsync.d.ts"
+    },
+    "./EitherAsync": {
+      "import": "./dist/esm/EitherAsync.js",
+      "require": "./dist/cjs/EitherAsync.js",
+      "types": "./dist/esm/EitherAsync.d.ts"
+    }
+  },
+  "scripts": {
+    "generate:tokens": "node --import tsx src/tokens/generateCSS.ts",
+    "build": "pnpm generate:tokens && tsc && tsc -p tsconfig.esm.json",
+    "test": "vitest run --coverage",
+    "lint:md": "markdownlint \"**/*.md\" --ignore node_modules",
+    "check:nodeps": "node scripts/check-no-node-builtins.mjs",
+    "prepublishOnly": "pnpm build && pnpm test && pnpm lint:md && pnpm check:nodeps"
+  },
+  "devDependencies": {
+    "glob": "^10.3.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.3",
+    "vitest": "^1.0.4",
+    "@vitest/coverage-v8": "^1.0.4",
+    "markdownlint-cli": "^0.37.0"
+  },
+  "dependencies": {},
+  "keywords": [
+    "functional",
+    "fp",
+    "fantasy-land",
+    "typescript",
+    "cloudflare-workers",
+    "maybe",
+    "either",
+    "monad",
+    "point-free",
+    "pipe"
+  ]
+}
