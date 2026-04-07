@@ -1,0 +1,18 @@
+name = "dependency-injection"
+main = "src/index.ts"
+compatibility_date = "2024-04-01"
+
+# KV Namespace for storing users
+[[kv_namespaces]]
+binding = "USERS_KV"
+id = "YOUR_NAMESPACE_ID"
+preview_id = "YOUR_PREVIEW_NAMESPACE_ID"
+
+# Develop settings
+[env.development]
+vars = { ENVIRONMENT = "development" }
+
+[[env.development.kv_namespaces]]
+binding = "USERS_KV"
+id = "YOUR_DEV_NAMESPACE_ID"
+preview_id = "YOUR_DEV_PREVIEW_NAMESPACE_ID"
