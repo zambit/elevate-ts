@@ -1,2 +1,73 @@
 # elevate-ts
-Point-free functional programming for TypeScript. Fantasy Land 5. Zero dependencies. Cloudflare Workers ready.
+
+[![Coverage](https://img.shields.io/badge/coverage-coming-lightgrey)](https://github.com/zambit/elevate-ts)
+[![npm](https://img.shields.io/badge/npm-0.1.0-lightgrey)](https://npmjs.com/package/elevate-ts)
+[![License: AGPL%20v3%2B](https://img.shields.io/badge/license-AGPL%20v3%2B-green.svg)](https://github.com/zambit/elevate-ts/blob/main/LICENSE)
+
+Point-free, data-last functional programming for TypeScript. Fantasy Land 5 compliant. Zero dependencies. Cloudflare
+Workers ready.
+
+## Install
+
+```bash
+pnpm add elevate-ts
+```
+
+## Quick Start
+
+```typescript
+import { pipe } from 'elevate-ts/Function'
+import { Just, Nothing, map, chain } from 'elevate-ts/Maybe'
+
+/** Create a Just value */
+const ma = Just(5)
+
+/** Use pipe to compose operations */
+const result = pipe(
+  ma,
+  map((a) => a * 2),
+  chain((b) => (b > 5 ? Just(b) : Nothing))
+)
+
+// result is Just(10)
+```
+
+## Modules
+
+| Module        | Description                                                                      |
+|---------------|----------------------------------------------------------------------------------|
+| Maybe         | Optional values; Functor, Applicative, Monad, Alt, Filter                       |
+| Either        | Values with a Left error branch; Bifunctor, Monad, Alt                          |
+| Validation    | Functor for collecting all errors during applicative (not short-circuit)        |
+| Reader        | Dependency injection / environment access; Monad                                |
+| State         | Pure stateful computation; track state through a sequence of operations         |
+| Tuple         | Immutable 2-tuple; Bifunctor, Monoid                                            |
+| NonEmptyList  | Guaranteed-nonempty array; Functor, Applicative, Monad, Monoid                 |
+| List          | Utilities over plain readonly arrays; map, filter, partition, zip, etc.        |
+| Function      | Function composition and utilities; pipe, flow, curry, memoize, once, tap      |
+| MaybeAsync    | Lazy async Maybe; rejects or throws become Nothing; never rejects              |
+| EitherAsync   | Lazy async Either; rejects become Left; never throws                           |
+
+## Philosophy
+
+- **Point-free**: Functions are composed by shape, not by naming intermediate values
+- **Data-last**: Configuration arguments precede the data being transformed
+- **Pure**: No classes, no mutations, ≤15 lines per function
+- **Cloudflare Workers**: No Node.js built-ins, no DOM APIs
+- **Fantasy Land 5**: All applicable types implement the spec
+- **Zero runtime dependencies**: Ship only pure TypeScript
+
+## Roadmap
+
+- Audit subsystem with time-travel replay (will use `@paralleldrive/cuid2` for operation-level ID stamping)
+
+## Contributing
+
+See [prompts/README.md](./prompts/README.md) for details on the prompt-driven development workflow.
+
+## License
+
+Dual-licensed:
+
+- Public license: GNU Affero General Public License v3.0 or later (`AGPL-3.0-or-later`). See [LICENSE](./LICENSE).
+- Commercial license: available from Zambit for customers who want to use `elevate-ts` in closed-source products or services. See [COMMERCIAL-LICENSE.md](./COMMERCIAL-LICENSE.md).
