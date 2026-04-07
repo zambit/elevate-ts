@@ -1,0 +1,14 @@
+node_modules
+dist
+coverage
+.wrangler
+
+# Local npm registry override (not for distribution)
+.npmrc
+
+# Development artifacts
+# Prompts are design documents that teach how to build samples.
+# They're kept locally for reference but not committed to avoid bloat.
+# Samples can be regenerated from prompts if needed.
+samples/prompts/
+prompts/

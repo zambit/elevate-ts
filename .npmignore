@@ -1,0 +1,14 @@
+samples/
+prompts/
+tests/
+*.test.ts
+.github/
+.gitignore
+.markdownlint.json
+tsconfig*.json
+vitest.config.ts
+elevate-ts-bootstrap.md
+PHILOSOPHY.md
+CONTRIBUTING.md
+PUBLISH_CHECKLIST.md
+CHANGELOG.md
