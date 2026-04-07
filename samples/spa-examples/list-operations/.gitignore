@@ -1,0 +1,25 @@
+# Dependencies
+node_modules
+.pnpm-debug.log
+
+# Build outputs
+dist
+*.local
+
+# Generated files
+src/styles/tokens.css
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Coverage
+coverage

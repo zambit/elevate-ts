@@ -1,0 +1,22 @@
+# Dependencies
+node_modules
+.pnpm-debug.log
+
+# Build outputs
+dist
+*.local
+.wrangler/
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# Environment
+.env
+.env.local
+
+# Coverage
+coverage
