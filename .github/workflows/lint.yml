@@ -9,7 +9,7 @@ on:
 jobs:
   lint:
     runs-on: ubuntu-latest
-    name: eslint + prettier + typescript
+    name: Code quality checks
 
     steps:
       - uses: actions/checkout@v4
@@ -26,14 +26,17 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Type check
+      - name: Type check (tsc)
         run: pnpm check:types
 
-      - name: Lint TypeScript
+      - name: Lint TypeScript (ESLint)
         run: pnpm lint:check
 
-      - name: Lint markdown
+      - name: Check code formatting (Prettier)
+        run: pnpm format:check
+
+      - name: Lint Markdown (markdownlint)
         run: pnpm lint:md
 
-      - name: Check no Node builtins
+      - name: Verify no Node.js builtins
         run: pnpm check:nodeps
