@@ -1,0 +1,11 @@
+node_modules/
+dist/
+coverage/
+pnpm-lock.yaml
+.next/
+.vuepress/dist/
+.nuxt/
+.cache/
+.output/
+.vercel/
+.changeset/
