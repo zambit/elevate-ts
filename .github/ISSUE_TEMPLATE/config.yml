@@ -1,0 +1,15 @@
+name: Issue Templates
+description: Choose an issue template
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for opening an issue! Please choose the type that best describes your issue.
+
+        - **🐛 Bug Report** — Something isn't working as expected
+        - **✨ Feature Request** — Suggest a new feature or enhancement
+        - **❓ Question** — Ask how to use elevate-ts
+        - **📚 Documentation** — Report unclear or missing docs
+        - **⚡ Performance** — Performance issue or optimization idea
+        - **🔤 Type Safety** — Issues with TypeScript types
