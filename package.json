@@ -4,6 +4,7 @@
   "description": "Point-free, data-last functional programming library for TypeScript. Fantasy Land 5 compliant. Zero Node.js dependencies. Cloudflare Workers ready.",
   "license": "AGPL-3.0-or-later",
   "type": "module",
+  "packageManager": "pnpm@10.33.0",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
   "types": "dist/esm/index.d.ts",
