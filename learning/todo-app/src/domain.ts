@@ -1,6 +1,5 @@
 import { State } from 'elevate-ts/State.js'
-import { pipe } from 'elevate-ts/Function.js'
-import { chain } from 'elevate-ts/State.js'
+
 import type { Todo, Todos, Filter, AppState } from './types.js'
 
 // ============================================================================
@@ -10,8 +9,10 @@ import type { Todo, Todos, Filter, AppState } from './types.js'
 /** Add a new todo to the list. Returns the created todo and new list. */
 export const addTodo = (title: string): State<Todos, Todo> =>
   State((todos) => {
+    const ids = todos.map((t) => t.id)
+    const nextId = ids.length > 0 ? Math.max(...ids) + 1 : 1
     const newTodo: Todo = {
-      id: todos.length > 0 ? Math.max(...todos.map((t) => t.id)) + 1 : 1,
+      id: nextId,
       title,
       done: false
     }
@@ -79,7 +80,7 @@ export const addWithHistory = (title: string): State<AppState, Todo> =>
 /** Toggle a todo and save history. */
 export const toggleWithHistory = (id: number): State<AppState, void> =>
   State((state) => {
-    const [_, newTodos] = toggleTodo(id).run(state.todos)
+    const [, newTodos] = toggleTodo(id).run(state.todos)
     return [
       undefined,
       {
@@ -90,10 +91,10 @@ export const toggleWithHistory = (id: number): State<AppState, void> =>
     ]
   })
 
-/** Remove a todo and save history. */
+" Remove a todo and save history. */
 export const removeWithHistory = (id: number): State<AppState, void> =>
   State((state) => {
-    const [_, newTodos] = removeTodo(id).run(state.todos)
+    const [, newTodos] = removeTodo(id).run(state.todos)
     return [
       undefined,
       {
@@ -107,7 +108,7 @@ export const removeWithHistory = (id: number): State<AppState, void> =>
 /** Clear completed todos and save history. */
 export const clearCompletedWithHistory = (): State<AppState, void> =>
   State((state) => {
-    const [_, newTodos] = clearCompleted().run(state.todos)
+    const [, newTodos] = clearCompleted().run(state.todos)
     return [
       undefined,
       {
