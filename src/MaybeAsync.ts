@@ -168,7 +168,7 @@ export const toEitherAsync = <E, A>(
       tag: 'EitherAsync',
       run: async () => {
         const maybe = await ma.run()
-        const Either = (await import('./Either.js')) as typeof import('./Either')
+        const Either = (await import('./Either.js')) as typeof import('./Either.js')
         return maybe.tag === 'Just'
           ? Either.Right(maybe.value)
           : Either.Left(onNothing)
