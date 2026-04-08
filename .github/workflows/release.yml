@@ -25,11 +25,11 @@ jobs:
 
       - uses: pnpm/action-setup@v2
         with:
-          version: 8
+          version: 10
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 24
           cache: pnpm
 
       - name: Install dependencies
@@ -51,7 +51,7 @@ jobs:
         run: pnpm changeset:version
 
       - name: Create Release PR
-        uses: peter-evans/create-pull-request@v5
+        uses: peter-evans/create-pull-request@v6
         with:
           commit-message: 'release: version packages'
           title: 'release: version packages'

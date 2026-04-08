@@ -12,3 +12,7 @@ coverage
 # Samples can be regenerated from prompts if needed.
 samples/prompts/
 prompts/
+
+# Claude Code local files
+CLAUDE.md
+llm-context
