@@ -1,4 +1,5 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect } from 'vitest'
+
 import {
   addTodo,
   toggleTodo,
@@ -8,8 +9,6 @@ import {
   countTodos,
   addWithHistory,
   toggleWithHistory,
-  removeWithHistory,
-  clearCompletedWithHistory,
   undo
 } from '../src/domain.js'
 import type { Todos, AppState } from '../src/types.js'
@@ -175,8 +174,8 @@ describe('domain', () => {
     })
 
     it('undo restores previous state', () => {
-      let state = initialState
-      const [_, state1] = addWithHistory('First').run(state)
+      const state = initialState
+      const [_,state1] = addWithHistory('First').run(state)
       const [__, state2] = addWithHistory('Second').run(state1)
 
       const [___, undoneState] = undo().run(state2)
@@ -190,7 +189,7 @@ describe('domain', () => {
     })
 
     it('multiple operations build up history', () => {
-      let state = initialState
+      const state = initialState
       const [_, state1] = addWithHistory('First').run(state)
       const [__, state2] = addWithHistory('Second').run(state1)
       const [___, state3] = addWithHistory('Third').run(state2)
@@ -202,7 +201,7 @@ describe('domain', () => {
 
   describe('Composition', () => {
     it('composing operations works', () => {
-      let state = initialState
+      const state = initialState
       const [_, state1] = addWithHistory('First').run(state)
       const [__, state2] = addWithHistory('Second').run(state1)
       const [___, state3] = toggleWithHistory(1).run(state2)
