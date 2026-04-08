@@ -71,10 +71,10 @@
   },
   "scripts": {
     "generate:tokens": "node --import tsx src/tokens/generateCSS.ts",
-    "build": "pnpm generate:tokens && tsc && tsc -p tsconfig.esm.json",
+    "build": "pnpm generate:tokens && tsc -p src/tsconfig.json && tsc -p tsconfig.esm.json",
     "test": "vitest run --coverage",
     "test:watch": "vitest",
-    "check:types": "tsc --noEmit",
+    "check:types": "tsc -p tsconfig.app.json --noEmit",
     "lint:check": "eslint . --ext .ts --max-warnings 0",
     "lint": "eslint . --ext .ts --format=pretty",
     "lint:fix": "eslint . --ext .ts --fix",

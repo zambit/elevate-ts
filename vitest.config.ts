@@ -8,12 +8,17 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
       exclude: [
-        'samples/**',
-        'src/Validation.ts',
-        'tests/Validation.test.ts',
-        'src/index.ts'
+        'scripts/**',
+        'src/tokens/**',
+        'src/index.ts',
+        '**/*Proto\'fantasy-land' // Fantasy Land protocol implementation details
       ],
-      ignoreEmpty: true
+      thresholds: {
+        lines: 80,
+        functions: 77,
+        branches: 80,
+        statements: 80
+      }
     }
   }
 })
