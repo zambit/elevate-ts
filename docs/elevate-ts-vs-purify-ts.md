@@ -25,106 +25,115 @@ represent different philosophies and use cases.
 ## Why Choose elevate-ts?
 
 ### 1. **Cloudflare Workers & Edge Computing**
-   - No Node.js built-ins means code runs directly on Cloudflare Workers, Deno Deploy, and other runtimes
-   - Zero external dependencies = minimal bundle size for edge functions
 
-   ```typescript
-   // Works in Cloudflare Workers
-   import { pipe } from 'elevate-ts/Function'
-   import { Just, map, chain } from 'elevate-ts/Maybe'
+- No Node.js built-ins means code runs directly on Cloudflare Workers, Deno Deploy, and other runtimes
+- Zero external dependencies = minimal bundle size for edge functions
 
-   export default {
-     fetch(request: Request) {
-       const result = pipe(
-         data,
-         map(parse),
-         chain(validate)
-       )
-       return new Response(JSON.stringify(result))
-     }
-   }
-   ```
+```typescript
+// Works in Cloudflare Workers
+import { pipe } from 'elevate-ts/Function'
+import { Just, map, chain } from 'elevate-ts/Maybe'
+
+export default {
+  fetch(request: Request) {
+    const result = pipe(
+      data,
+      map(parse),
+      chain(validate)
+    )
+    return new Response(JSON.stringify(result))
+  }
+}
+```
 
 ### 2. **Point-Free Composition**
-   - Functions compose by shape, not by intermediate variable names
-   - More declarative: you read what transformations happen, not how
-   - Easier refactoring: reorder operations without renaming variables
 
-   ```typescript
-   // purify-ts (method chaining)
-   const result = getUserById(userId)
-     .map(user => user.email)
-     .chain(email => validateEmail(email))
-     .getOrElse('Invalid email')
+- Functions compose by shape, not by intermediate variable names
+- More declarative: you read what transformations happen, not how
+- Easier refactoring: reorder operations without renaming variables
 
-   // elevate-ts (point-free)
-   const result = pipe(
-     userId,
-     getUserById,
-     map(user => user.email),
-     chain(validateEmail),
-     getOrElse('Invalid email')
-   )
-   ```
+```typescript
+// purify-ts (method chaining)
+const result = getUserById(userId)
+  .map(user => user.email)
+  .chain(email => validateEmail(email))
+  .getOrElse('Invalid email')
+
+// elevate-ts (point-free)
+const result = pipe(
+  userId,
+  getUserById,
+  map(user => user.email),
+  chain(validateEmail),
+  getOrElse('Invalid email')
+)
+```
 
 ### 3. **Data-Last Argument Order**
-   - Curried functions with data as the final argument
-   - Enables powerful partial application and composition
-   - Configuration precedes data: `(config) => (data) => result`
 
-   ```typescript
-   // purify-ts
-   const double = (value: number) => value * 2
-   const arr = [1, 2, 3]
-   const doubled = arr.map(double) // Method call on array
+- Curried functions with data as the final argument
+- Enables powerful partial application and composition
+- Configuration precedes data: `(config) => (data) => result`
 
-   // elevate-ts (data-last)
-   const double = (n: number) => n * 2
-   const arr = [1, 2, 3]
-   const mapDouble = map(double) // Partial application
-   const doubled = pipe(arr, mapDouble) // Reusable transformation
-   ```
+```typescript
+// purify-ts
+const double = (value: number) => value * 2
+const arr = [1, 2, 3]
+const doubled = arr.map(double) // Method call on array
+
+// elevate-ts (data-last)
+const double = (n: number) => n * 2
+const arr = [1, 2, 3]
+const mapDouble = map(double) // Partial application
+const doubled = pipe(arr, mapDouble) // Reusable transformation
+```
 
 ### 4. **Smaller & Faster**
-   - Each function ≤15 lines, max one side effect
-   - Minimal bundle footprint
-   - Tree-shakable
-   - No unused dependencies
+
+- Each function ≤15 lines, max one side effect
+- Minimal bundle footprint
+- Tree-shakable
+- No unused dependencies
 
 ### 5. **Explicit Imports**
-   - Functions come from modules, not methods
-   - Clear about what you're importing
-   - Better IDE autocomplete and refactoring
+
+- Functions come from modules, not methods
+- Clear about what you're importing
+- Better IDE autocomplete and refactoring
 
 ## Why Choose purify-ts?
 
 ### 1. **Mature & Battle-Tested**
-   - Established library with real-world usage
-   - Extensive ecosystem and community resources
-   - More third-party integrations
+
+- Established library with real-world usage
+- Extensive ecosystem and community resources
+- More third-party integrations
 
 ### 2. **Object-Oriented Comfort**
-   - If your team prefers method chaining
-   - Natural if coming from OOP backgrounds
-   - No need to learn point-free style
 
-   ```typescript
-   // Feels natural with one variable
-   const user = Maybe.fromNullable(getUserData(id))
-     .map(u => u.name)
-     .getOrElse('Unknown')
-   ```
+- If your team prefers method chaining
+- Natural if coming from OOP backgrounds
+- No need to learn point-free style
+
+```typescript
+// Feels natural with one variable
+const user = Maybe.fromNullable(getUserData(id))
+  .map(u => u.name)
+  .getOrElse('Unknown')
+```
 
 ### 3. **More Operators & Type Classes**
-   - Richer type class ecosystem
-   - More helper functions pre-built
-   - Larger surface area (sometimes good, sometimes bloat)
+
+- Richer type class ecosystem
+- More helper functions pre-built
+- Larger surface area (sometimes good, sometimes bloat)
 
 ## Side-by-Side Examples
 
 ### Example 1: Handling Optional User Fetch
 
 **purify-ts:**
+
 ```typescript
 import { Maybe, fromNullable } from 'purify-ts/Maybe'
 import { Left, Right } from 'purify-ts/Either'
@@ -141,6 +150,7 @@ const getUserEmail = (user: User | null): string =>
 ```
 
 **elevate-ts:**
+
 ```typescript
 import { pipe } from 'elevate-ts/Function'
 import { fromNullable, map, getOrElse } from 'elevate-ts/Maybe'
@@ -162,6 +172,7 @@ const getUserEmail = (user: User | null): string =>
 ### Example 2: Validation with Error Handling
 
 **purify-ts:**
+
 ```typescript
 import { Right, Left, Either } from 'purify-ts/Either'
 
@@ -181,6 +192,7 @@ const getAdultStatus = (userInput: string): string =>
 ```
 
 **elevate-ts:**
+
 ```typescript
 import { pipe } from 'elevate-ts/Function'
 import { Right, Left, chain, map, getOrElse as getOrElseEither } from 'elevate-ts/Either'
@@ -206,6 +218,7 @@ const getAdultStatus = (userInput: string): string =>
 ### Example 3: Composing Multiple Transformations
 
 **purify-ts:**
+
 ```typescript
 const processOrder = (orderId: string): string => {
   let result = Maybe.fromNullable(getOrder(orderId))
@@ -220,6 +233,7 @@ const processOrder = (orderId: string): string => {
 ```
 
 **elevate-ts (much cleaner):**
+
 ```typescript
 import { pipe } from 'elevate-ts/Function'
 import { fromNullable, map, chain, getOrElse } from 'elevate-ts/Maybe'
@@ -240,6 +254,7 @@ const processOrder = (orderId: string): string =>
 ## When to Use elevate-ts
 
 ✅ **Use elevate-ts if you:**
+
 - Build for Cloudflare Workers, Deno Deploy, or other runtimes without Node.js
 - Love functional programming and point-free composition
 - Want minimal dependencies and smaller bundles
@@ -249,6 +264,7 @@ const processOrder = (orderId: string): string =>
 - Are starting a new project with a FP-first approach
 
 ❌ **Avoid elevate-ts if:**
+
 - Your team strongly prefers OOP/method chaining
 - You need the maturity of the purify-ts ecosystem
 - You rely on specialized extensions/plugins from purify-ts
@@ -257,6 +273,7 @@ const processOrder = (orderId: string): string =>
 ## When to Use purify-ts
 
 ✅ **Use purify-ts if you:**
+
 - Build traditional Node.js applications
 - Prefer method chaining over point-free composition
 - Need mature, battle-tested code
@@ -264,6 +281,7 @@ const processOrder = (orderId: string): string =>
 - Are already invested in purify-ts
 
 ❌ **Avoid purify-ts if:**
+
 - You need to run on Cloudflare Workers (Node.js builtins cause issues)
 - You're optimizing for minimal bundle size
 - Your team is learning functional programming (point-free is easier to grok)
