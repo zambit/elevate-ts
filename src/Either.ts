@@ -253,12 +253,14 @@ leftProto['fantasy-land/reduce'] = function <L, A, B>(
 ) {
   return b
 }
+// istanbul ignore next
 leftProto['fantasy-land/equals'] = function <L, R>(
   this: Left<L>,
   other: Either<L, R>
 ) {
   return other.tag === 'Left' && this.left === other.left
 }
+// istanbul ignore next
 leftProto['fantasy-land/alt'] = function <L, R>(this: Left<L>, ealt: Either<L, R>) {
   return ealt
 }

@@ -1,6 +1,6 @@
 # elevate-ts
 
-[![Coverage](https://img.shields.io/badge/coverage-coming-lightgrey)](https://github.com/zambit/elevate-ts)
+[![Coverage](https://img.shields.io/badge/coverage-77%25-brightgreen)](./coverage/index.html)
 [![npm](https://img.shields.io/badge/npm-0.1.0-lightgrey)](https://npmjs.com/package/elevate-ts)
 [![License: AGPL%20v3%2B](https://img.shields.io/badge/license-AGPL%20v3%2B-green.svg)](https://github.com/zambit/elevate-ts/blob/main/LICENSE)
 
@@ -57,13 +57,18 @@ const result = pipe(
 - **Fantasy Land 5**: All applicable types implement the spec
 - **Zero runtime dependencies**: Ship only pure TypeScript
 
+## Learning & Examples
+
+- **[elevate-ts-learning](https://github.com/zambit/elevate-ts-learning)** - Comprehensive tutorial with interactive todo app and 4 learning guides
+- **[elevate-ts-samples](https://github.com/zambit/elevate-ts-samples)** - Production-ready examples (form validation, state management, list operations, workers)
+
 ## Roadmap
 
 - Audit subsystem with time-travel replay (will use `@paralleldrive/cuid2` for operation-level ID stamping)
 
 ## Contributing
 
-See [prompts/README.md](./prompts/README.md) for details on the prompt-driven development workflow.
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for details on how to contribute.
 
 ## License
 

@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "ESNext",
     "module": "CommonJS",
-    "moduleResolution": "node",
+    "moduleResolution": "node20",
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
@@ -10,7 +10,12 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "outDir": "./dist/cjs"
+    "outDir": "./dist/cjs",
+    "composite": true,
+    "baseUrl": "./",
+    "paths": {
+      "elevate-ts/*": ["src/*"]
+    }
   },
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules", "tests", "src/tokens/**"]

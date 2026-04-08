@@ -1,7 +1,7 @@
 // MaybeAsync — Lazy Async Maybe
 
-import * as Maybe from './Maybe.js'
 import type * as EitherAsyncModule from './EitherAsync.js'
+import * as Maybe from './Maybe.js'
 
 /**
  * Lazy async Maybe: wraps Promise<Maybe<A>>.

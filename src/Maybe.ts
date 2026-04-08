@@ -216,6 +216,7 @@ nothingProto['fantasy-land/reduce'] = function <A, B>(
 ) {
   return b
 }
+// istanbul ignore next
 nothingProto['fantasy-land/equals'] = function <A>(
   this: Nothing,
   other: Maybe<A>
