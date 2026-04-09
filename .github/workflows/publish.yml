@@ -2,21 +2,13 @@ name: Publish to npm
 
 on:
   push:
-    branches:
-      - main
-      - initial
-    paths:
-      - 'package.json'
+    tags:
+      - 'v*'
 
 jobs:
   publish:
     runs-on: ubuntu-latest
     name: Publish to npm
-    # Only run if package.json was modified (version bump via changeset)
-    if: |
-      contains(github.event.head_commit.modified, 'package.json') ||
-      github.event_name == 'workflow_dispatch'
-
     permissions:
       contents: read
       id-token: write
@@ -45,8 +37,25 @@ jobs:
       - name: Run tests
         run: pnpm test
 
-      - name: Publish to npm
-        run: npm publish --provenance
+      - name: Determine license (AGPL vs Commercial)
+        id: license
+        run: |
+          TAG="${{ github.ref }}"
+          if [[ $TAG == *"-commercial" ]]; then
+            echo "type=commercial" >> $GITHUB_OUTPUT
+          else
+            echo "type=agpl" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Publish AGPL version
+        if: steps.license.outputs.type == 'agpl'
+        run: npm publish --tag agpl --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish Commercial version
+        if: steps.license.outputs.type == 'commercial'
+        run: pnpm exec tsx scripts/publish-commercial.ts
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
