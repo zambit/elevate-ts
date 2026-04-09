@@ -158,32 +158,40 @@ export const traverse =
     sequence(as.map(f))
 
 // Fantasy Land symbols
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const flMap = <L, A, B>(f: (a: A) => B): ((ea: Either<L, A>) => Either<L, B>) =>
   map(f)
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const flAp = <L, A, B>(
   ef: Either<L, (a: A) => B>
 ): ((ea: Either<L, A>) => Either<L, B>) => ap(ef)
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const flChain = <L, A, B>(
   f: (a: A) => Either<L, B>
 ): ((ea: Either<L, A>) => Either<L, B>) => chain(f)
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const flBimap = <L, L2, A, B>(
   f: (l: L) => L2,
   g: (a: A) => B
 ): ((ea: Either<L, A>) => Either<L2, B>) => bimap(f, g)
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const flReduce = <L, A, B>(
   f: (b: B, a: A) => B,
   b: B
 ): ((ea: Either<L, A>) => B) => (ea) =>
   ea.tag === 'Right' ? f(b, ea.right) : b
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const flEquals = <L, R>(other: Either<L, R>): ((ea: Either<L, R>) => boolean) => (ea) =>
   ea.tag === 'Left' ? other.tag === 'Left' && ea.left === other.left
     : other.tag === 'Right' && ea.right === other.right
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const flAlt = <L, R>(ealt: Either<L, R>): ((ea: Either<L, R>) => Either<L, R>) => (ea) =>
   ea.tag === 'Right' ? ea : ealt
 
 Object.defineProperty(Right, 'fantasy-land/of', { value: Right })
 
 const rightProto = Object.getPrototypeOf(Right(0))
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 rightProto['fantasy-land/map'] = function <L, A, B>(this: Right<A>, f: (a: A) => B) {
   return Right(f(this.right))
 }
@@ -206,6 +214,7 @@ rightProto['fantasy-land/bimap'] = function <L, L2, A, B>(
 ) {
   return Right(g(this.right))
 }
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 rightProto['fantasy-land/reduce'] = function <L, A, B>(
   this: Right<A>,
   f: (b: B, a: A) => B,
@@ -221,28 +230,29 @@ rightProto['fantasy-land/equals'] = function <L, A>(
 }
 rightProto['fantasy-land/alt'] = function <L, R>(
   this: Right<R>,
-  ealt: Either<L, R>
+  _ealt: Either<L, R>
 ) {
   return this
 }
 
 const leftProto = Object.getPrototypeOf(Left(0))
-leftProto['fantasy-land/map'] = function <L, A, B>(this: Left<L>, f: (a: A) => B) {
+leftProto['fantasy-land/map'] = function <L, A, B>(this: Left<L>, _f: (a: A) => B) {
   return this
 }
-leftProto['fantasy-land/ap'] = function <L, A, B>(this: Left<L>, ea: Either<L, A>) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+leftProto['fantasy-land/ap'] = function <L, A, _B>(this: Left<L>, _ea: Either<L, A>) {
   return this
 }
 leftProto['fantasy-land/chain'] = function <L, A, B>(
   this: Left<L>,
-  f: (a: A) => Either<L, B>
+  _f: (a: A) => Either<L, B>
 ) {
   return this
 }
 leftProto['fantasy-land/bimap'] = function <L, L2, A, B>(
   this: Left<L>,
   f: (l: L) => L2,
-  g: (a: A) => B
+  _g: (a: A) => B
 ) {
   return Left(f(this.left))
 }

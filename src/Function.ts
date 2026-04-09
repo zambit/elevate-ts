@@ -333,8 +333,9 @@ export const curry4 = <A, B, C, D, E>(
 export const memoize = <A, B>(f: (a: A) => B): ((a: A) => B) => {
   const cache = new Map<A, B>()
   return (a: A) => {
-    if (cache.has(a)) {
-      return cache.get(a)!
+    const cached = cache.get(a)
+    if (cached !== undefined) {
+      return cached
     }
     const result = f(a)
     cache.set(a, result)
