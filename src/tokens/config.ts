@@ -56,6 +56,7 @@ function generateNeutralScale(): Record<string, string> {
 /**
  * Generate semantic color scales using HSL.
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function generateColorScale(
   name: string,
   hue: number,

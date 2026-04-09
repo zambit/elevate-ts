@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /**
  * Design Token CSS Generator
  *
@@ -17,9 +18,11 @@
 
 import { writeFileSync, mkdirSync } from 'fs'
 import { dirname, resolve } from 'path'
+
 import { glob } from 'glob'
-import { generateCSS } from './cssGen.js'
+
 import { tokenConfig } from './config.js'
+import { generateCSS } from './cssGen.js'
 
 /**
  * Find all sample directories that need tokens generated.

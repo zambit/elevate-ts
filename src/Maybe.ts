@@ -128,20 +128,26 @@ export const traverse =
     sequence(as.map(f))
 
 // Fantasy Land symbols
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const flMap = <A, B>(f: (a: A) => B): ((ma: Maybe<A>) => Maybe<B>) => map(f)
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const flAp = <A, B>(
   mf: Maybe<(a: A) => B>
 ): ((ma: Maybe<A>) => Maybe<B>) => ap(mf)
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const flChain = <A, B>(f: (a: A) => Maybe<B>): ((ma: Maybe<A>) => Maybe<B>) =>
   chain(f)
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const flFilter = <A>(
   predicate: (a: A) => boolean
 ): ((ma: Maybe<A>) => Maybe<A>) => filter(predicate)
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const flReduce = <A, B>(
   f: (b: B, a: A) => B,
   b: B
 ): ((ma: Maybe<A>) => B) => (ma) =>
   ma.tag === 'Just' ? f(b, ma.value) : b
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const flEquals = <A>(a: A): ((ma: Maybe<A>) => boolean) => (ma) =>
   ma.tag === 'Just' && ma.value === a
 
@@ -164,7 +170,7 @@ justProto['fantasy-land/chain'] = function <A, B>(
 ) {
   return f(this.value)
 }
-justProto['fantasy-land/alt'] = function <A>(this: Just<A>, malt: Maybe<A>) {
+justProto['fantasy-land/alt'] = function <A>(this: Just<A>, _malt: Maybe<A>) {
   return this
 }
 justProto['fantasy-land/filter'] = function <A>(
@@ -185,18 +191,20 @@ justProto['fantasy-land/equals'] = function <A>(this: Just<A>, other: Maybe<A>) 
 }
 
 const nothingProto = Object.getPrototypeOf(Nothing)
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 nothingProto['fantasy-land/map'] = function <A, B>(this: Nothing, f: (a: A) => B) {
   return Nothing
 }
-nothingProto['fantasy-land/ap'] = function <A, B>(
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+nothingProto['fantasy-land/ap'] = function <_A, B>(
   this: Nothing,
-  ma: Maybe<A>
+  _ma: Maybe<_A>
 ) {
   return Nothing
 }
 nothingProto['fantasy-land/chain'] = function <A, B>(
   this: Nothing,
-  f: (a: A) => Maybe<B>
+  _f: (a: A) => Maybe<B>
 ) {
   return Nothing
 }
@@ -205,7 +213,7 @@ nothingProto['fantasy-land/alt'] = function <A>(this: Nothing, malt: Maybe<A>) {
 }
 nothingProto['fantasy-land/filter'] = function <A>(
   this: Nothing,
-  predicate: (a: A) => boolean
+  _predicate: (a: A) => boolean
 ) {
   return Nothing
 }
