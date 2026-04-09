@@ -1,6 +1,6 @@
 {
   "name": "elevate-ts",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Functional programming library for TypeScript. Available under AGPL-3.0 or Commercial License.",
   "license": "AGPL-3.0-or-later",
   "type": "module",
