@@ -1,8 +1,16 @@
 {
-  "name": "elevate-ts",
-  "version": "0.1.1",
+  "name": "@zambit/elevate-ts",
+  "version": "0.1.2",
   "description": "Functional programming library for TypeScript. Available under AGPL-3.0 or Commercial License.",
   "license": "AGPL-3.0-or-later",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zambit/elevate-ts.git"
+  },
+  "homepage": "https://github.com/zambit/elevate-ts",
+  "bugs": {
+    "url": "https://github.com/zambit/elevate-ts/issues"
+  },
   "type": "module",
   "packageManager": "pnpm@10.33.0",
   "publishConfig": {

@@ -107,14 +107,14 @@ Before merging the version bump PR:
 
 Once published:
 
-- [ ] Verify the package on [npmjs.com/package/elevate-ts](https://www.npmjs.com/package/elevate-ts)
-- [ ] Verify all files are present: `npm view elevate-ts`
+- [ ] Verify the package on [npmjs.com/package/@zambit/elevate-ts](https://www.npmjs.com/package/@zambit/elevate-ts)
+- [ ] Verify all files are present: `npm view @zambit/elevate-ts`
 - [ ] Test installation in fresh project:
 
   ```bash
   mkdir test-install && cd test-install
   npm init -y
-  npm install elevate-ts
+  npm install @zambit/elevate-ts
   ```
 
 - [ ] Verify GitHub release was created with changelog
@@ -147,7 +147,7 @@ git add . && git commit -m "release: version bump"
 npm allows unpublishing only within 24 hours of publication:
 
 ```bash
-npm unpublish elevate-ts@VERSION --force
+npm unpublish @zambit/elevate-ts@VERSION --force
 ```
 
 Then:

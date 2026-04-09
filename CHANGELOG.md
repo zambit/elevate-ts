@@ -1,8 +1,14 @@
 # Changelog
 
+## 0.1.2
+
+### Patch Changes for 2026-04-09
+
+- chore: bump version for npm package cleanup
+
 ## 0.1.1
 
-### Patch Changes
+### Patch Changes for 2026-04-08
 
 - Updated the licensing and documentation
 - Doing the first push.

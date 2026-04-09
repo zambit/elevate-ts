@@ -7,7 +7,7 @@ elevate-ts is available under two complementary licenses:
 **For:** Open source projects, research, educational use
 
 ```bash
-npm install elevate-ts@agpl
+npm install @zambit/elevate-ts@agpl
 ```
 
 - **Cost:** Free
@@ -19,7 +19,7 @@ npm install elevate-ts@agpl
 **For:** Proprietary, closed-source, or commercial projects
 
 ```bash
-npm install elevate-ts@commercial
+npm install @zambit/elevate-ts@commercial
 ```
 
 - **Cost:** Contact us for pricing

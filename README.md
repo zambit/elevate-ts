@@ -1,7 +1,7 @@
 # elevate-ts
 
 [![Coverage](https://img.shields.io/badge/coverage-77%25-brightgreen)](./coverage/index.html)
-[![npm](https://img.shields.io/badge/npm-0.1.0-lightgrey)](https://npmjs.com/package/elevate-ts)
+[![npm](https://img.shields.io/badge/npm-0.1.2-lightgrey)](https://npmjs.com/package/@zambit/elevate-ts)
 [![License: AGPL%20v3%2B](https://img.shields.io/badge/license-AGPL%20v3%2B-green.svg)](https://github.com/zambit/elevate-ts/blob/main/LICENSE)
 
 Point-free, data-last functional programming for TypeScript. Fantasy Land 5 compliant. Zero dependencies. Cloudflare
@@ -10,14 +10,14 @@ Workers ready.
 ## Install
 
 ```bash
-pnpm add elevate-ts
+pnpm add @zambit/elevate-ts
 ```
 
 ## Quick Start
 
 ```typescript
-import { pipe } from 'elevate-ts/Function'
-import { Just, Nothing, map, chain } from 'elevate-ts/Maybe'
+import { pipe } from '@zambit/elevate-ts/Function'
+import { Just, Nothing, map, chain } from '@zambit/elevate-ts/Maybe'
 
 /** Create a Just value */
 const ma = Just(5)
