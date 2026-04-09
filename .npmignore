@@ -1,6 +1,7 @@
 # Source code - distribute only compiled dist/
 src/
 tsconfig*.json
+tsconfig.app.tsbuildinfo
 vitest.config.ts
 
 # Development & documentation
@@ -13,15 +14,36 @@ tests/
 *.spec.ts
 *.test.js
 *.spec.js
+TOKENS.md
+FANTASY_LAND.md
+elevate-ts-bootstrap.md
+PHILOSOPHY.md
+CONTRIBUTING.md
+PUBLISH_CHECKLIST.md
+CHANGELOG.md
+
+# Config files
+.eslintrc.json
+.eslintignore
+.prettierignore
+.prettierrc.json
+.markdownlint.json
 
 # Repository & CI/CD
 .github/
 .gitignore
 .vscode
-.markdownlint.json
+.husky/
+.claude/
+.changeset/
+
+# Coverage & documentation
+coverage/
+docs/
 
 # Lock files
 pnpm-lock.yaml
+pnpm-workspace.yaml
 yarn.lock
 package-lock.json
 
@@ -30,11 +52,5 @@ COMMERCIAL-LICENSE.md
 DUAL-LICENSING.md
 
 # Miscellaneous
-elevate-ts-bootstrap.md
-PHILOSOPHY.md
-CONTRIBUTING.md
-PUBLISH_CHECKLIST.md
-CHANGELOG.md
 samples/
 learning/
-.changeset/
