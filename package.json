@@ -71,8 +71,7 @@
     }
   },
   "scripts": {
-    "generate:tokens": "node --import tsx src/tokens/generateCSS.ts",
-    "build": "pnpm generate:tokens && tsc -p src/tsconfig.json && tsc -p tsconfig.esm.json",
+    "build": "tsc -p src/tsconfig.json && tsc -p tsconfig.esm.json",
     "test": "vitest run --coverage",
     "test:watch": "vitest",
     "check:types": "tsc -p tsconfig.app.json --noEmit",
