@@ -12,11 +12,7 @@
 
 # Documentation
 /docs/ @zambit
-/learning/ @zambit
 /*.md @zambit
-
-# Samples and examples
-/samples/ @zambit
 
 # GitHub and CI/CD
 /.github/ @zambit
