@@ -1,10 +1,14 @@
 {
   "name": "elevate-ts",
   "version": "0.1.0",
-  "description": "Point-free, data-last functional programming library for TypeScript. Fantasy Land 5 compliant. Zero Node.js dependencies. Cloudflare Workers ready.",
+  "description": "Functional programming library for TypeScript. Available under AGPL-3.0 or Commercial License.",
   "license": "AGPL-3.0-or-later",
   "type": "module",
   "packageManager": "pnpm@10.33.0",
+  "publishConfig": {
+    "access": "public",
+    "tag": "agpl"
+  },
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
   "types": "dist/esm/index.d.ts",
@@ -87,6 +91,8 @@
     "changeset:version": "changeset version",
     "changeset:publish": "pnpm build && changeset publish",
     "release": "pnpm changeset:version && pnpm changeset:publish",
+    "publish:agpl": "npm publish --tag agpl --provenance",
+    "publish:commercial": "tsx scripts/publish-commercial.ts",
     "prepublishOnly": "pnpm build && pnpm test && pnpm lint:md && pnpm check:nodeps"
   },
   "devDependencies": {

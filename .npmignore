@@ -1,14 +1,39 @@
-samples/
-prompts/
-tests/
-*.test.ts
-.github/
-.gitignore
-.markdownlint.json
+# Source code - distribute only compiled dist/
+src/
 tsconfig*.json
 vitest.config.ts
+
+# Development & documentation
+prompts/
+llm-context/
+scripts/
+tests/
+*.test.ts
+*.spec.ts
+*.test.js
+*.spec.js
+
+# Repository & CI/CD
+.github/
+.gitignore
+.vscode
+.markdownlint.json
+
+# Lock files
+pnpm-lock.yaml
+yarn.lock
+package-lock.json
+
+# License management - AGPL releases exclude commercial
+COMMERCIAL-LICENSE.md
+DUAL-LICENSING.md
+
+# Miscellaneous
 elevate-ts-bootstrap.md
 PHILOSOPHY.md
 CONTRIBUTING.md
 PUBLISH_CHECKLIST.md
 CHANGELOG.md
+samples/
+learning/
+.changeset/

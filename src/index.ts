@@ -1,3 +1,7 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later OR LicenseRef-Commercial
+// Copyright (C) 2024 Zambit Technologies Corp
+// See LICENSE or COMMERCIAL-LICENSE.md in the package root.
+
 // elevate-ts
 // Re-exports added as each module is implemented.
 // See prompts/README.md for implementation order.
