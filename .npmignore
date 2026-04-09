@@ -4,6 +4,7 @@ tsconfig*.json
 vitest.config.ts
 
 # Development & documentation
+CLAUDE.md
 prompts/
 llm-context/
 scripts/
