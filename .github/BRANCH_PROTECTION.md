@@ -5,7 +5,7 @@ This document describes the branch protection configuration for the `main` branc
 ## Overview
 
 All changes to `main` must come through a pull request with:
-- Passing CI/CD checks (lint, test, build)
+- Passing CI/CD checks (CLA, lint, test, build)
 - At least 1 approval review
 - Linear git history (rebase merge only)
 - Up-to-date with latest main
@@ -19,6 +19,7 @@ See [`branch-protection-main.json`](./branch-protection-main.json) for the compl
 ### Enforced Checks
 
 - **Required status checks**: All CI/CD workflows must pass
+  - CLA (contributor terms acknowledgment or maintainer override label)
   - Test (vitest + coverage)
   - Build (TypeScript compilation)
   - Lint & Type Check (ESLint, Prettier, TypeScript)
@@ -65,6 +66,7 @@ The `required_status_checks.contexts` array must match your actual GitHub Action
 - If a workflow name changes, update this file
 
 Current workflows:
+- `CLA` (from cla.yml)
 - `Test` (from test.yml)
 - `Build` (from build.yml)
 - `Lint & Type Check` (from lint.yml)

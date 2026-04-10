@@ -68,7 +68,9 @@ const result = pipe(
 
 ## Contributing
 
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for details on how to contribute.
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for details on how to contribute. Non-trivial
+contributions must be covered by the applicable contributor license agreement:
+[CLA-INDIVIDUAL.md](./CLA-INDIVIDUAL.md) or [CLA-CORPORATE.md](./CLA-CORPORATE.md).
 
 ## License
 

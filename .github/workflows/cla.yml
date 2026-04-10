@@ -1,0 +1,55 @@
+name: CLA
+
+on:
+  pull_request_target:
+    types:
+      - opened
+      - edited
+      - synchronize
+      - reopened
+      - labeled
+      - unlabeled
+      - ready_for_review
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  cla:
+    runs-on: ubuntu-latest
+    name: Contributor license check
+
+    steps:
+      - name: Validate contributor acknowledgment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request
+            const body = pr.body || ''
+            const labels = (pr.labels || []).map((label) => label.name)
+
+            const requiredAck =
+              '- [x] I confirm this contribution is mine to submit and is covered by the applicable contributor terms in [CONTRIBUTING.md](../CONTRIBUTING.md)'
+
+            const overrideLabels = ['cla-signed', 'cla-exempt']
+            const hasAck = body.includes(requiredAck)
+            const matchingOverride = labels.find((label) => overrideLabels.includes(label))
+
+            if (hasAck || matchingOverride) {
+              core.info(
+                hasAck
+                  ? 'Contributor acknowledgment found in PR body.'
+                  : `CLA check satisfied by maintainer override label: ${matchingOverride}.`
+              )
+              return
+            }
+
+            core.setFailed(
+              [
+                'Missing CLA acknowledgment.',
+                'To pass this check, either:',
+                '1. Check the contributor terms box in the pull request template, or',
+                '2. Ask a maintainer to apply the `cla-signed` label for an offline/corporate signature or `cla-exempt` for a trivial change.'
+              ].join('\n')
+            )

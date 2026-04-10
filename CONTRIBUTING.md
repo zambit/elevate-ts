@@ -3,6 +3,38 @@
 Thank you for your interest in contributing to elevate-ts! This document describes our development
 workflow and coding standards.
 
+## Contribution License Terms
+
+`elevate-ts` is operated under a dual-license model:
+
+- Public license: `AGPL-3.0-or-later`
+- Commercial license: available separately from Zambit for closed-source use
+
+To keep that model legally workable, Zambit only accepts non-trivial contributions under a
+Contributor License Agreement ("CLA") that permits Zambit to use, sublicense, and relicense
+contributions under both open-source and commercial terms.
+
+In practice:
+
+1. By submitting a non-trivial contribution, you agree that it is submitted subject to the
+   applicable CLA.
+2. Individual contributors must agree to [CLA-INDIVIDUAL.md](./CLA-INDIVIDUAL.md).
+3. Contributions made within the scope of employment or on behalf of a company must be covered by
+   [CLA-CORPORATE.md](./CLA-CORPORATE.md) or other written approval acceptable to Zambit.
+4. This requirement applies to bug fixes, features, tests, documentation, examples, and other
+   substantive project contributions.
+5. Small corrections that do not contain creative authorship, such as typo fixes or formatting-only
+   changes, may be accepted without a CLA at Zambit's discretion.
+
+GitHub pull requests are checked automatically. A PR passes the contributor rights gate when:
+
+- the contributor checks the contributor-terms acknowledgment in the PR template; or
+- a maintainer applies the `cla-signed` label for an offline or corporate signature; or
+- a maintainer applies the `cla-exempt` label for a trivial change that does not need CLA coverage.
+
+Do not submit code you do not have the right to contribute. If your employer or client may have
+rights in your contribution, get approval before submitting it.
+
 ## Development Workflow
 
 The elevate-ts library is built using a "prompt-driven" development model. Each module (Maybe,
@@ -115,12 +147,13 @@ ESM distribution. This is crucial for Cloudflare Workers compatibility.
 When submitting a pull request:
 
 1. Target the `main` branch.
-2. Include tests for all new functions.
-3. Ensure **all** tests pass: `pnpm test`
-4. Ensure **all** linting passes: `pnpm lint:md`
-5. Ensure **no Node.js built-ins**: `pnpm check:nodeps`
-6. Ensure build succeeds: `pnpm build`
-7. Update `CHANGELOG.md` if adding new functionality.
+2. Confirm that your contribution is covered by the applicable CLA.
+3. Include tests for all new functions.
+4. Ensure **all** tests pass: `pnpm test`
+5. Ensure **all** linting passes: `pnpm lint:md`
+6. Ensure **no Node.js built-ins**: `pnpm check:nodeps`
+7. Ensure build succeeds: `pnpm build`
+8. Update `CHANGELOG.md` if adding new functionality.
 
 ## Important Note: Audit Subsystem
 
@@ -138,6 +171,7 @@ See the roadmap section in `README.md` for more context.
 ## Questions?
 
 If you have questions about the invariants, the prompt-driven workflow, or how to implement a
-particular module, open an issue or discussion on the repository.
+particular module, or whether a contribution needs CLA coverage, open an issue or discussion on the
+repository.
 
 Thank you for contributing to elevate-ts!
