@@ -4,18 +4,20 @@ This document outlines how elevate-ts publishes to two separate registries with 
 
 ## Overview
 
-```
+```text
 npm org: elevate-ts (under mlhamatzbt)
 GitHub org: zambit
 GitHub repo: zambit/elevate-ts (public)
 ```
 
-**AGPL Version:**
+### AGPL Version
+
 - Package: `elevate-ts` (unscoped, public)
 - Registry: npmjs.org
 - Anyone can download
 
-**Commercial Version:**
+### Commercial Version
+
 - Package: `@zambit/elevate-ts-commercial` (scoped to GitHub)
 - Registry: GitHub Packages (private)
 - Only org members with GitHub auth can download
@@ -50,7 +52,8 @@ GitHub repo: zambit/elevate-ts (public)
 }
 ```
 
-**Key changes:**
+Key changes:
+
 - `"name": "elevate-ts"` (unscoped, discoverable)
 - `"registry"` explicitly set to npmjs.org
 - `"publish:agpl"` script added
@@ -207,7 +210,6 @@ See [COMMERCIAL-LICENSE.md](./COMMERCIAL-LICENSE.md) and [COMMERCIAL_ACCESS.md](
 import { pipe } from 'elevate-ts/Function'
 import { Just, map, chain } from 'elevate-ts/Maybe'
 ```
-```
 
 ### B. Create `COMMERCIAL_ACCESS.md`
 
@@ -225,11 +227,12 @@ This guide explains how to install `@zambit/elevate-ts-commercial` from GitHub P
 
 Ask Zambit for a GitHub personal access token. It looks like:
 
-```
+```text
 ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ```
 
 Or create your own:
+
 1. GitHub.com → Settings → Developer settings → Personal access tokens
 2. Generate new token (classic)
 3. Scopes: `read:packages`
@@ -299,6 +302,7 @@ docker build --build-arg GITHUB_TOKEN=ghp_xxx -t myapp .
 **Cause:** npm can't find the package or you don't have access.
 
 **Fix:**
+
 - Verify you have GitHub access to the Zambit org
 - Confirm token is valid: `npm view @zambit/elevate-ts-commercial --registry=https://npm.pkg.github.com`
 - Check `.npmrc` is correct: `cat ~/.npmrc`
@@ -308,6 +312,7 @@ docker build --build-arg GITHUB_TOKEN=ghp_xxx -t myapp .
 **Cause:** Token expired or invalid.
 
 **Fix:**
+
 - Create new token at GitHub.com → Settings → Developer settings → Personal access tokens
 - Update `~/.npmrc` with new token
 - Run `npm cache clean --force`
@@ -317,14 +322,14 @@ docker build --build-arg GITHUB_TOKEN=ghp_xxx -t myapp .
 **Cause:** `.npmrc` configuration missing or incorrect.
 
 **Fix:**
+
 - Make sure `@zambit:registry` is set in `~/.npmrc`
 - Run `npm cache clean --force`
 - Try again
 
 ## Support
 
-Contact: support@zambit.com
-```
+Contact: [support@zambit.com](mailto:support@zambit.com)
 
 ### C. Update `PUBLISH_CHECKLIST.md`
 
@@ -341,17 +346,19 @@ git push --tags
 ```
 
 GitHub Actions automatically:
+
 1. Detects tag `v1.0.0` (no `-commercial` suffix)
 2. Publishes to npmjs.org
 3. Creates GitHub Release
 
 Verify:
+
 ```bash
 npm view elevate-ts
 npm search elevate-ts
 ```
 
-### Commercial Version
+### Step 3B: Publish Commercial
 
 ```bash
 git tag v1.0.0-commercial   # Triggers publish to GitHub Packages
@@ -359,14 +366,15 @@ git push --tags
 ```
 
 GitHub Actions automatically:
+
 1. Detects tag with `-commercial` suffix
 2. Publishes to GitHub Packages
 3. Creates GitHub Release
 
 Verify (with GitHub auth):
+
 ```bash
 npm view @zambit/elevate-ts-commercial --registry=https://npm.pkg.github.com
-```
 ```
 
 ---
@@ -382,6 +390,7 @@ pnpm changeset
 ```
 
 Follow prompts:
+
 - Select: `elevate-ts`
 - Select: `patch` (bug fix), `minor` (feature), or `major` (breaking)
 - Write description
@@ -417,6 +426,7 @@ git push origin v0.1.2
 ```
 
 **GitHub Actions automatically:**
+
 1. Detects tag `v0.1.2` (no `-commercial` suffix)
 2. Runs: `npm publish --registry https://registry.npmjs.org`
 3. Uses `NPM_TOKEN` secret for authentication
@@ -424,6 +434,7 @@ git push origin v0.1.2
 5. Done ✅
 
 **Verify publication:**
+
 ```bash
 npm view elevate-ts
 npm install elevate-ts  # Test it locally
@@ -439,6 +450,7 @@ git push origin v0.1.2-commercial
 ```
 
 **GitHub Actions automatically:**
+
 1. Detects tag with `-commercial` suffix
 2. Runs: `pnpm publish:commercial`
    - Updates package name to `@zambit/elevate-ts-commercial`
@@ -450,6 +462,7 @@ git push origin v0.1.2-commercial
 6. Done ✅
 
 **Verify publication (with GitHub auth):**
+
 ```bash
 npm view @zambit/elevate-ts-commercial --registry=https://npm.pkg.github.com
 ```
@@ -495,15 +508,17 @@ It has permission to publish to GitHub Packages by default.
 
 ---
 
-## Troubleshooting
+## Publish Troubleshooting
 
-### Publish fails: "404 Not Found"
+### Publish fails: 404 Not Found
 
 **AGPL:**
+
 - Check `NPM_TOKEN` is set correctly in GitHub secrets
 - Verify you have publish rights to `elevate-ts` on npmjs
 
 **Commercial:**
+
 - Verify you have publish rights to `@zambit` org on GitHub Packages
 - Check GitHub Packages is enabled in org settings
 
@@ -524,17 +539,20 @@ npm publish
 
 ### Can't install commercial version
 
-**Error: 404 Not Found**
+#### Installation: 404 Not Found
+
 - Verify GitHub token is valid
 - Verify `@zambit:registry` is in `.npmrc`
 
-**Error: 401 Unauthorized**
+#### Installation: 401 Unauthorized
+
 - GitHub token expired or incorrect
 - Create new token at GitHub.com → Settings → Developer settings
 
 ### Both AGPL and commercial published same version
 
 This is fine. They have different package names:
+
 - `elevate-ts` on npmjs
 - `@zambit/elevate-ts-commercial` on GitHub Packages
 
