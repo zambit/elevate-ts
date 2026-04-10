@@ -14,7 +14,7 @@ This guide explains how to install `@zambit/elevate-ts-commercial` (and other pr
 
 Zambit will provide you with an npm authentication token. It looks like:
 
-```
+```text
 npm_xxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ```
 
@@ -57,6 +57,7 @@ registry=https://registry.npmjs.org/
 ```
 
 The format is:
+
 - `@{ORG}:registry=https://registry.npmjs.org/` — Tells npm where to find @org packages
 - `//registry.npmjs.org/:_authToken={TOKEN}` — Provides the authentication token
 
@@ -176,7 +177,8 @@ docker build --build-arg NPM_TOKEN=npm_xxxxx -t myapp .
 
 **Cause:** npm can't find the package. Usually means the token is missing or invalid.
 
-**Fix:** 
+**Fix:**
+
 - Double-check your `.npmrc` file exists in `~/.npmrc`
 - Verify the token hasn't expired (contact Zambit for a new one)
 - Make sure `@zambit:registry` is set correctly
@@ -192,6 +194,7 @@ npm view @zambit/elevate-ts-commercial
 **Cause:** Token is invalid or expired.
 
 **Fix:**
+
 - Get a fresh token from Zambit
 - Update your `.npmrc`
 - Clear npm cache: `npm cache clean --force`
@@ -202,6 +205,7 @@ npm view @zambit/elevate-ts-commercial
 **Cause:** npm doesn't have permission to write to directories.
 
 **Fix:**
+
 ```bash
 # Fix npm permissions
 mkdir ~/.npm-global
@@ -214,7 +218,8 @@ export PATH=~/.npm-global/bin:$PATH
 ## Security Best Practices
 
 1. **Never commit `.npmrc` to git** — Use `.gitignore`:
-   ```
+
+   ```text
    .npmrc
    ```
 
