@@ -26,4 +26,9 @@ Any other information that might help (related issues, discussions, external lin
 
 ---
 
+**Contribution note:** If you later implement this as a pull request, substantive contributions
+must be covered by the contributor terms in [CONTRIBUTING.md](../CONTRIBUTING.md).
+
+---
+
 **Note:** Before proposing major features, consider opening a Discussion or Issue to get feedback from maintainers.

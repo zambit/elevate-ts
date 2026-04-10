@@ -16,6 +16,7 @@ tests/
 *.spec.js
 TOKENS.md
 FANTASY_LAND.md
+PRIVATE_PACKAGE_ACCESS.md
 elevate-ts-bootstrap.md
 PHILOSOPHY.md
 CONTRIBUTING.md

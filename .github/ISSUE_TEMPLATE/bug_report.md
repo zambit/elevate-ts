@@ -36,4 +36,9 @@ Any other information that might help (error logs, stack traces, etc.)
 
 ---
 
+**Contribution note:** If you later open a pull request with a substantive bug fix, it must be
+covered by the contributor terms in [CONTRIBUTING.md](../CONTRIBUTING.md).
+
+---
+
 **Note:** If this is a security vulnerability, please report it privately via [SECURITY.md](../SECURITY.md) instead of opening a public issue.
