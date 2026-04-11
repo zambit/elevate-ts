@@ -24,10 +24,7 @@
     "@typescript-eslint/no-explicit-any": "error",
     "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
     "@typescript-eslint/no-non-null-assertion": "error",
-    "@typescript-eslint/strict-boolean-expressions": [
-      "error",
-      { "allowString": false, "allowNumber": false, "allowNullableObject": false }
-    ],
+    "@typescript-eslint/strict-boolean-expressions": ["error", { "allowString": false, "allowNumber": false, "allowNullableObject": false }],
     "import/order": [
       "error",
       {
@@ -40,12 +37,7 @@
     "import/no-extraneous-dependencies": [
       "error",
       {
-        "devDependencies": [
-          "**/*.test.ts",
-          "**/*.spec.ts",
-          "vitest.config.ts",
-          "vite.config.ts"
-        ]
+        "devDependencies": ["**/*.test.ts", "**/*.spec.ts", "vitest.config.ts", "vite.config.ts"]
       }
     ],
     "no-console": ["warn", { "allow": ["warn", "error"] }],

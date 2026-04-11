@@ -1,7 +1,7 @@
 // Reader — Dependency Injection
 
 /** Represents a Reader computation: a pure function (env: R) => A. */
-export type Reader<R, A> = { readonly tag: 'Reader'; readonly run: (env: R) => A }
+export type Reader<R, A> = { readonly tag: 'Reader'; readonly run: (env: R) => A };
 
 /**
  * Construct a Reader from a function.
@@ -10,21 +10,21 @@ export type Reader<R, A> = { readonly tag: 'Reader'; readonly run: (env: R) => A
  */
 export const Reader = <R, A>(run: (env: R) => A): Reader<R, A> => ({
   tag: 'Reader',
-  run,
-})
+  run
+});
 
 /**
  * Retrieve the environment as a value.
  * @returns A Reader that returns the environment unchanged.
  */
-export const ask = <R>(): Reader<R, R> => Reader((env) => env)
+export const ask = <R>(): Reader<R, R> => Reader((env) => env);
 
 /**
  * Retrieve and transform the environment.
  * @param f - Function to transform the environment.
  * @returns A Reader that applies the function to the environment.
  */
-export const asks = <R, A>(f: (env: R) => A): Reader<R, A> => Reader(f)
+export const asks = <R, A>(f: (env: R) => A): Reader<R, A> => Reader(f);
 
 /**
  * Modify the environment for a sub-computation.
@@ -34,7 +34,7 @@ export const asks = <R, A>(f: (env: R) => A): Reader<R, A> => Reader(f)
 export const local =
   <R>(f: (env: R) => R): (<A>(reader: Reader<R, A>) => Reader<R, A>) =>
   (reader) =>
-    Reader((env) => reader.run(f(env)))
+    Reader((env) => reader.run(f(env)));
 
 /**
  * Functor map over the result.
@@ -44,7 +44,7 @@ export const local =
 export const map =
   <A, B>(f: (a: A) => B): (<R>(reader: Reader<R, A>) => Reader<R, B>) =>
   (reader) =>
-    Reader((env) => f(reader.run(env)))
+    Reader((env) => f(reader.run(env)));
 
 /**
  * Applicative ap: apply a Reader containing a function to a Reader containing a value.
@@ -54,7 +54,7 @@ export const map =
 export const ap =
   <R, A, B>(rf: Reader<R, (a: A) => B>): ((ra: Reader<R, A>) => Reader<R, B>) =>
   (ra) =>
-    Reader((env) => rf.run(env)(ra.run(env)))
+    Reader((env) => rf.run(env)(ra.run(env)));
 
 /**
  * Monadic bind: sequentially compose two Readers.
@@ -64,7 +64,7 @@ export const ap =
 export const chain =
   <R, A, B>(f: (a: A) => Reader<R, B>): ((reader: Reader<R, A>) => Reader<R, B>) =>
   (reader) =>
-    Reader((env) => f(reader.run(env)).run(env))
+    Reader((env) => f(reader.run(env)).run(env));
 
 /**
  * Execute a Reader with an environment.
@@ -74,7 +74,7 @@ export const chain =
 export const runReader =
   <R, A>(env: R): ((reader: Reader<R, A>) => A) =>
   (reader) =>
-    reader.run(env)
+    reader.run(env);
 
 // Fantasy Land symbols
 // Note: FL methods excluded to work around vitest coverage serialization issues.

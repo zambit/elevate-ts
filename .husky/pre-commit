@@ -1,4 +1,4 @@
 #!/bin/sh
 . "$(dirname "$0")/_/husky.sh"
 
-pnpm lint:check && pnpm lint:md
+pnpm format:check && pnpm lint:check && pnpm lint:md

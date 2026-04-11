@@ -12,13 +12,13 @@
 
 ```typescript
 // Maybe<A>
-type Maybe<A> = Just<A> | Nothing
+type Maybe<A> = Just<A> | Nothing;
 
 // Either<L, R>
-type Either<L, R> = Left<L> | Right<R>
+type Either<L, R> = Left<L> | Right<R>;
 
 // Reader<R, A> — simple environment threading
-type Reader<R, A> = { readonly tag: 'Reader'; readonly run: (env: R) => A }
+type Reader<R, A> = { readonly tag: 'Reader'; readonly run: (env: R) => A };
 ```
 
 **Characteristics:**
@@ -38,7 +38,7 @@ type Reader<R, A> = { readonly tag: 'Reader'; readonly run: (env: R) => A }
 
 **Weaknesses:**
 
-- No way to encode "this computation requires dependency X" *in the type itself*
+- No way to encode "this computation requires dependency X" _in the type itself_
 - Splitting error handling concerns (expected errors vs unexpected failures) requires separate conventions
 - No first-class way to model concurrent or cancellable computations
 - Reader is lazy but stateless; cannot model resource acquisition/release
@@ -91,14 +91,13 @@ type Cause<E> = Fail<E> | Die | Interrupt | Sequential<E> | Parallel<E>
 
 ```typescript
 // Either<L, R> — Left is error, Right is success
-const attempt = (f: () => Value): Either<string, Value> =>
-  Either.tryCatch(f, (e) => String(e))
+const attempt = (f: () => Value): Either<string, Value> => Either.tryCatch(f, (e) => String(e));
 
 // Flat error type: no distinction between expected errors and unexpected exceptions
 const result = pipe(
   attempt(() => JSON.parse(input)),
   Either.chain((parsed) => validate(parsed))
-)
+);
 
 // If JSON.parse throws: Left("SyntaxError: ...")
 // If validate returns Left: Left("Validation failed")
@@ -133,17 +132,17 @@ const result = pipe(
 ```typescript
 // Cause<E> — models failure in complete detail
 type Cause<E> =
-  | Fail<E>           // Expected, typed error
-  | Die               // Unexpected exception (preserves stack trace)
-  | Interrupt         // Effect was cancelled
-  | Sequential<E>     // Chain failed; cleanup also failed
-  | Parallel<E>       // Multiple concurrent failures
+  | Fail<E> // Expected, typed error
+  | Die // Unexpected exception (preserves stack trace)
+  | Interrupt // Effect was cancelled
+  | Sequential<E> // Chain failed; cleanup also failed
+  | Parallel<E>; // Multiple concurrent failures
 
 // Exit<A, E>
-type Exit<A, E> = Success<A> | Failure<Cause<E>>
+type Exit<A, E> = Success<A> | Failure<Cause<E>>;
 
 // Example: concurrent errors are captured structurally
-const results = Effect.allPar([effect1, effect2, effect3])
+const results = Effect.allPar([effect1, effect2, effect3]);
 // If effect1 fails with Fail("error1") and effect2 throws new Error("bug"),
 // Cause captures both:
 // Parallel([Fail("error1"), Die(Error("bug"))])
@@ -297,14 +296,9 @@ const result = pipe(
 ### elevate-ts: `pipe()`
 
 ```typescript
-import { pipe } from '@zambit/elevate-ts/Function'
+import { pipe } from '@zambit/elevate-ts/Function';
 
-const result = pipe(
-  initialValue,
-  step1,
-  step2,
-  step3
-)
+const result = pipe(initialValue, step1, step2, step3);
 // Explicitly chains operations left-to-right
 // Each step is a simple function: (A) => B
 ```
@@ -333,22 +327,22 @@ const result = pipe(
 ### Effect-TS: `pipe()` + `Effect.gen()`
 
 ```typescript
-import { pipe, Effect } from "effect"
+import { pipe, Effect } from 'effect';
 
 // 1. Using pipe (similar to elevate-ts)
 const result1 = pipe(
   Effect.succeed(5),
-  Effect.map(x => x * 2),
-  Effect.flatMap(y => Effect.succeed(y + 1))
-)
+  Effect.map((x) => x * 2),
+  Effect.flatMap((y) => Effect.succeed(y + 1))
+);
 
 // 2. Using Effect.gen (generator-based, looks imperative)
 const result2 = Effect.gen(function* () {
-  const x = yield* Effect.succeed(5)
-  const y = x * 2
-  const z = yield* Effect.succeed(y + 1)
-  return z
-})
+  const x = yield* Effect.succeed(5);
+  const y = x * 2;
+  const z = yield* Effect.succeed(y + 1);
+  return z;
+});
 
 // Both are equivalent; gen is syntactic sugar
 ```
@@ -451,16 +445,16 @@ const result = pipe(
 
 ```typescript
 // Validation monad exists but is for applicative-style error collection, not schema validation
-import { Validation } from '@zambit/elevate-ts'
+import { Validation } from '@zambit/elevate-ts';
 
 // Manual validation
 const validateUser = (data: unknown): Either<string[], User> => {
-  if (typeof data !== 'object' || data === null) return Left(['Not an object'])
-  const obj = data as Record<string, unknown>
-  if (typeof obj.id !== 'string') return Left(['id must be a string'])
-  if (typeof obj.name !== 'string') return Left(['name must be a string'])
-  return Right({ id: obj.id, name: obj.name })
-}
+  if (typeof data !== 'object' || data === null) return Left(['Not an object']);
+  const obj = data as Record<string, unknown>;
+  if (typeof obj.id !== 'string') return Left(['id must be a string']);
+  if (typeof obj.name !== 'string') return Left(['name must be a string']);
+  return Right({ id: obj.id, name: obj.name });
+};
 ```
 
 **Status:**
@@ -486,7 +480,7 @@ const validateUser = (data: unknown): Either<string[], User> => {
 ### Effect-TS: First-Class Schema
 
 ```typescript
-import { Schema, Effect } from 'effect'
+import { Schema, Effect } from 'effect';
 
 // Define schema once; used for validation, serialization, docs
 const UserSchema = Schema.Struct({
@@ -494,18 +488,16 @@ const UserSchema = Schema.Struct({
   name: Schema.String,
   email: Schema.String,
   age: Schema.optional(Schema.Int)
-})
+});
 
 // Automatic validation
-const parseUser = (data: unknown): Effect<User, ParseError> =>
-  Schema.decode(UserSchema)(data)
+const parseUser = (data: unknown): Effect<User, ParseError> => Schema.decode(UserSchema)(data);
 
 // Automatic serialization
-const encodeUser = (user: User): Effect<unknown, ParseError> =>
-  Schema.encode(UserSchema)(user)
+const encodeUser = (user: User): Effect<unknown, ParseError> => Schema.encode(UserSchema)(user);
 
 // Type is derived automatically
-type User = Schema.Type<typeof UserSchema>
+type User = Schema.Type<typeof UserSchema>;
 // User = { id: string; name: string; email: string; age?: number }
 
 // Used throughout the ecosystem
@@ -542,17 +534,17 @@ type User = Schema.Type<typeof UserSchema>
 
 ### elevate-ts: Minimal, Focused
 
-| Feature | Status |
-| --- | --- |
-| Core monads | [YES] Complete (Maybe, Either, etc.) |
-| Async support | [YES] (EitherAsync, MaybeAsync) |
-| DI / Environment | [YES] Basic (Reader) |
-| Schema validation | [NO] Not built-in |
-| HTTP server | [NO] Not included |
-| Database | [NO] Not included |
-| CLI tools | [NO] Not included |
-| Testing utilities | [NO] Not included |
-| Observability | [NO] Not included |
+| Feature           | Status                               |
+| ----------------- | ------------------------------------ |
+| Core monads       | [YES] Complete (Maybe, Either, etc.) |
+| Async support     | [YES] (EitherAsync, MaybeAsync)      |
+| DI / Environment  | [YES] Basic (Reader)                 |
+| Schema validation | [NO] Not built-in                    |
+| HTTP server       | [NO] Not included                    |
+| Database          | [NO] Not included                    |
+| CLI tools         | [NO] Not included                    |
+| Testing utilities | [NO] Not included                    |
+| Observability     | [NO] Not included                    |
 
 **Philosophy:**
 
@@ -570,19 +562,19 @@ type User = Schema.Type<typeof UserSchema>
 
 ### Effect-TS: Comprehensive Ecosystem
 
-| Feature | Package | Status |
-| --- | --- | --- |
-| Core effects | effect | [YES] Complete |
-| Schema validation | effect | [YES] Built-in |
-| HTTP server | @effect/platform | [YES] Declarative HttpApi |
-| Database | @effect/sql | [YES] 8+ implementations (PG, MySQL, SQLite, etc.) |
-| CLI | @effect/cli | [YES] Command parsing, help generation |
-| Testing | @effect/vitest | [YES] Vitest integration |
-| Observability | @effect/opentelemetry | [YES] Tracing, metrics, logs |
-| AI integration | @effect/ai | [YES] OpenAI, Anthropic, Bedrock, Google |
-| RPC | @effect/rpc | [YES] Type-safe RPC |
-| Cluster | @effect/cluster | [YES] Distributed computing |
-| Durable workflows | @effect/workflow | [YES] Temporal-like workflows |
+| Feature           | Package               | Status                                             |
+| ----------------- | --------------------- | -------------------------------------------------- |
+| Core effects      | effect                | [YES] Complete                                     |
+| Schema validation | effect                | [YES] Built-in                                     |
+| HTTP server       | @effect/platform      | [YES] Declarative HttpApi                          |
+| Database          | @effect/sql           | [YES] 8+ implementations (PG, MySQL, SQLite, etc.) |
+| CLI               | @effect/cli           | [YES] Command parsing, help generation             |
+| Testing           | @effect/vitest        | [YES] Vitest integration                           |
+| Observability     | @effect/opentelemetry | [YES] Tracing, metrics, logs                       |
+| AI integration    | @effect/ai            | [YES] OpenAI, Anthropic, Bedrock, Google           |
+| RPC               | @effect/rpc           | [YES] Type-safe RPC                                |
+| Cluster           | @effect/cluster       | [YES] Distributed computing                        |
+| Durable workflows | @effect/workflow      | [YES] Temporal-like workflows                      |
 
 **Philosophy:**
 
@@ -649,20 +641,20 @@ type User = Schema.Type<typeof UserSchema>
 
 ```typescript
 // Works everywhere: browser, Worker, Bun
-import { pipe, Either, Just } from '@zambit/elevate-ts'
+import { pipe, Either, Just } from '@zambit/elevate-ts';
 
 const validate = (input: string): Either<string, number> => {
   try {
-    return Either.Right(parseInt(input, 10))
+    return Either.Right(parseInt(input, 10));
   } catch (e) {
-    return Either.Left('Invalid number')
+    return Either.Left('Invalid number');
   }
-}
+};
 
 const result = pipe(
   Just('42'),
   Maybe.chain((s) => Either.toMaybe(validate(s)))
-)
+);
 ```
 
 **Reality:** Works because it doesn't rely on ANY platform APIs. It's pure computation.
@@ -673,15 +665,15 @@ const result = pipe(
 
 ```typescript
 // Browser: works with @effect/platform-browser
-import { Effect } from 'effect'
-import { HttpClient } from '@effect/platform-browser'
+import { Effect } from 'effect';
+import { HttpClient } from '@effect/platform-browser';
 
 const fetchUser = (id: string): Effect<User, Error, HttpClient> =>
   Effect.gen(function* () {
-    const client = yield* HttpClient.HttpClient
-    const response = yield* client.get(`/api/users/${id}`)
-    return response.json
-  })
+    const client = yield* HttpClient.HttpClient;
+    const response = yield* client.get(`/api/users/${id}`);
+    return response.json;
+  });
 
 // Cloudflare Worker: would need @effect/platform-worker (doesn't exist; would use @effect/platform-browser)
 // Node.js: would use @effect/platform-node
@@ -703,9 +695,7 @@ const fetchUser = (id: string): Effect<User, Error, HttpClient> =>
 6. **Offline-first or client-side** app with no backend integration
 7. **Bundle size is critical** ([NOTE] <10KB constraint)
 
-**Example Use Case:**
-[NOTE] Cloudflare Worker: receive JSON, parse with Either, transform with pipe, return JSON.
-No dependencies, no concurrent operations, no resource cleanup.
+**Example Use Case:** [NOTE] Cloudflare Worker: receive JSON, parse with Either, transform with pipe, return JSON. No dependencies, no concurrent operations, no resource cleanup.
 
 ---
 
@@ -719,9 +709,8 @@ No dependencies, no concurrent operations, no resource cleanup.
 6. **Team is FP-experienced** or willing to invest in training
 7. **Long-term maintenance** is a priority (the type system catches breakages)
 
-**Example Use Case:**
-[NOTE] Full-stack app: Effect handles HTTP server, DB queries, authentication, logging, error recovery all in one type system.
-A backend refactoring automatically identifies where services need to be provided; the compiler fails fast.
+**Example Use Case:** [NOTE] Full-stack app: Effect handles HTTP server, DB queries, authentication, logging, error recovery all in one type system. A backend refactoring automatically identifies
+where services need to be provided; the compiler fails fast.
 
 ---
 
@@ -771,8 +760,7 @@ const validateRequest = (req: Request): Either<string, Payload> => { ... }
 
 4. **No "async/await"-style Layer syntax.** Writing layers requires understanding monad laws; `Layer.fromEffect`, `Layer.provide`, `Layer.compose` are terse but require deep knowledge.
 
-5. **Platform abstractions leak.** FileSystem is abstract; concrete implementations have different
-   semantics (e.g., browsers don't support absolute paths).
+5. **Platform abstractions leak.** FileSystem is abstract; concrete implementations have different semantics (e.g., browsers don't support absolute paths).
 
 ---
 
@@ -805,11 +793,9 @@ const validateRequest = (req: Request): Either<string, Payload> => { ... }
 
 **elevate-ts is not trying to be Effect-TS, and that's okay.**
 
-elevate-ts is **intentionally minimalist.** It provides core monads, assumes vanilla TypeScript
-for I/O, and optimizes for bundle size. It's a **library**, not a framework.
+elevate-ts is **intentionally minimalist.** It provides core monads, assumes vanilla TypeScript for I/O, and optimizes for bundle size. It's a **library**, not a framework.
 
-Effect-TS is **intentionally maximalist.** It provides everything: scheduling, resources, DI,
-observability, schema validation. It's a **framework** designed as an application foundation.
+Effect-TS is **intentionally maximalist.** It provides everything: scheduling, resources, DI, observability, schema validation. It's a **framework** designed as an application foundation.
 
 **When in doubt:**
 

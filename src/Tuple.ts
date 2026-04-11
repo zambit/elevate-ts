@@ -1,7 +1,7 @@
 // Tuple — Immutable 2-Tuples
 
 /** Immutable 2-tuple. */
-export type Tuple<A, B> = { readonly fst: A; readonly snd: B }
+export type Tuple<A, B> = { readonly fst: A; readonly snd: B };
 
 /**
  * Construct a Tuple from two values.
@@ -9,21 +9,21 @@ export type Tuple<A, B> = { readonly fst: A; readonly snd: B }
  * @param snd - The second component.
  * @returns A Tuple containing both values.
  */
-export const Tuple = <A, B>(fst: A, snd: B): Tuple<A, B> => ({ fst, snd })
+export const Tuple = <A, B>(fst: A, snd: B): Tuple<A, B> => ({ fst, snd });
 
 /**
  * Extract the first component.
  * @param tuple - The tuple to extract from.
  * @returns The first component.
  */
-export const fst = <A, B>(tuple: Tuple<A, B>): A => tuple.fst
+export const fst = <A, B>(tuple: Tuple<A, B>): A => tuple.fst;
 
 /**
  * Extract the second component.
  * @param tuple - The tuple to extract from.
  * @returns The second component.
  */
-export const snd = <A, B>(tuple: Tuple<A, B>): B => tuple.snd
+export const snd = <A, B>(tuple: Tuple<A, B>): B => tuple.snd;
 
 /**
  * Map over the first component.
@@ -33,7 +33,7 @@ export const snd = <A, B>(tuple: Tuple<A, B>): B => tuple.snd
 export const mapFst =
   <A, B, A2>(f: (a: A) => A2): ((tuple: Tuple<A, B>) => Tuple<A2, B>) =>
   (tuple) =>
-    Tuple(f(tuple.fst), tuple.snd)
+    Tuple(f(tuple.fst), tuple.snd);
 
 /**
  * Map over the second component.
@@ -43,7 +43,7 @@ export const mapFst =
 export const mapSnd =
   <A, B, B2>(f: (b: B) => B2): ((tuple: Tuple<A, B>) => Tuple<A, B2>) =>
   (tuple) =>
-    Tuple(tuple.fst, f(tuple.snd))
+    Tuple(tuple.fst, f(tuple.snd));
 
 /**
  * Bifunctor bimap: map over both components independently.
@@ -54,31 +54,28 @@ export const mapSnd =
 export const bimap =
   <A, B, A2, B2>(f: (a: A) => A2, g: (b: B) => B2): ((tuple: Tuple<A, B>) => Tuple<A2, B2>) =>
   (tuple) =>
-    Tuple(f(tuple.fst), g(tuple.snd))
+    Tuple(f(tuple.fst), g(tuple.snd));
 
 /**
  * Convert a Tuple to a 2-element array.
  * @param tuple - The tuple to convert.
  * @returns A 2-element array.
  */
-export const toArray = <A, B>(tuple: Tuple<A, B>): readonly [A, B] =>
-  [tuple.fst, tuple.snd]
+export const toArray = <A, B>(tuple: Tuple<A, B>): readonly [A, B] => [tuple.fst, tuple.snd];
 
 /**
  * Construct a Tuple from a 2-element array.
  * @param arr - A 2-element array.
  * @returns A Tuple constructed from the array.
  */
-export const fromArray = <A, B>(arr: readonly [A, B]): Tuple<A, B> =>
-  Tuple(arr[0], arr[1])
+export const fromArray = <A, B>(arr: readonly [A, B]): Tuple<A, B> => Tuple(arr[0], arr[1]);
 
 /**
  * Swap the components of a Tuple.
  * @param tuple - The tuple to swap.
  * @returns A new Tuple with components reversed.
  */
-export const swap = <A, B>(tuple: Tuple<A, B>): Tuple<B, A> =>
-  Tuple(tuple.snd, tuple.fst)
+export const swap = <A, B>(tuple: Tuple<A, B>): Tuple<B, A> => Tuple(tuple.snd, tuple.fst);
 
 /**
  * Apply two functions to the same input, combining results as a Tuple.
@@ -89,7 +86,7 @@ export const swap = <A, B>(tuple: Tuple<A, B>): Tuple<B, A> =>
 export const fanout =
   <A, B, C>(f: (a: A) => B, g: (a: A) => C): ((a: A) => Tuple<B, C>) =>
   (a) =>
-    Tuple(f(a), g(a))
+    Tuple(f(a), g(a));
 
 // Fantasy Land symbols
 // Note: FL methods excluded to work around vitest coverage serialization issues.
