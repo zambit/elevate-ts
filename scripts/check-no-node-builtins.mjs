@@ -5,8 +5,8 @@ const builtins = ['node:', 'fs', 'path', 'os', 'crypto', 'http', 'net', 'stream'
 const distEsmDir = path.join(process.cwd(), 'dist', 'esm')
 
 if (!fs.existsSync(distEsmDir)) {
-  console.error(`dist/esm directory not found at ${distEsmDir}`)
-  process.exit(1)
+  console.log(`dist/esm not built yet; skipping Node.js builtin check (will run in test workflow)`)
+  process.exit(0)
 }
 
 let foundViolations = false
