@@ -84,44 +84,44 @@ This script swaps the package name and LICENSE file, then publishes to GitHub Pa
  * 4. Restores everything
  */
 
-import { readFileSync, writeFileSync } from 'fs'
-import { execSync } from 'child_process'
+import { readFileSync, writeFileSync } from 'fs';
+import { execSync } from 'child_process';
 
-const pkgPath = 'package.json'
-const licensePath = 'LICENSE'
-const agplBackupPath = 'LICENSE.agpl'
-const commercialLicensePath = 'COMMERCIAL-LICENSE.md'
+const pkgPath = 'package.json';
+const licensePath = 'LICENSE';
+const agplBackupPath = 'LICENSE.agpl';
+const commercialLicensePath = 'COMMERCIAL-LICENSE.md';
 
-const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8'))
-const originalName = pkg.name
-const originalLicense = pkg.license
+const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8'));
+const originalName = pkg.name;
+const originalLicense = pkg.license;
 
-console.log('Publishing commercial version to GitHub Packages...')
+console.log('Publishing commercial version to GitHub Packages...');
 
 try {
   // Update package
-  pkg.name = '@zambit/elevate-ts-commercial'
-  pkg.license = 'SEE COMMERCIAL-LICENSE.md'
-  writeFileSync(pkgPath, JSON.stringify(pkg, null, 2))
+  pkg.name = '@zambit/elevate-ts-commercial';
+  pkg.license = 'SEE COMMERCIAL-LICENSE.md';
+  writeFileSync(pkgPath, JSON.stringify(pkg, null, 2));
 
   // Swap licenses
-  execSync(`mv ${licensePath} ${agplBackupPath}`)
-  execSync(`cp ${commercialLicensePath} ${licensePath}`)
+  execSync(`mv ${licensePath} ${agplBackupPath}`);
+  execSync(`cp ${commercialLicensePath} ${licensePath}`);
 
   // Publish to GitHub Packages
-  execSync('npm publish --registry https://npm.pkg.github.com', { stdio: 'inherit' })
-  console.log('Commercial version published to GitHub Packages!')
+  execSync('npm publish --registry https://npm.pkg.github.com', { stdio: 'inherit' });
+  console.log('Commercial version published to GitHub Packages!');
 } catch (error) {
-  console.error('Error:', error.message)
-  process.exit(1)
+  console.error('Error:', error.message);
+  process.exit(1);
 } finally {
   // Restore
-  pkg.name = originalName
-  pkg.license = originalLicense
-  writeFileSync(pkgPath, JSON.stringify(pkg, null, 2))
+  pkg.name = originalName;
+  pkg.license = originalLicense;
+  writeFileSync(pkgPath, JSON.stringify(pkg, null, 2));
 
-  execSync(`rm ${licensePath}`)
-  execSync(`mv ${agplBackupPath} ${licensePath}`)
+  execSync(`rm ${licensePath}`);
+  execSync(`mv ${agplBackupPath} ${licensePath}`);
 }
 ```
 
@@ -181,7 +181,7 @@ jobs:
 
 ### A. Update `README.md`
 
-```markdown
+````markdown
 # elevate-ts
 
 Point-free, data-last functional programming for TypeScript.
@@ -193,6 +193,7 @@ Point-free, data-last functional programming for TypeScript.
 ```bash
 npm install elevate-ts
 ```
+````
 
 See [LICENSE](./LICENSE) for terms. You must share modifications under AGPL-3.0.
 
@@ -207,13 +208,13 @@ See [COMMERCIAL-LICENSE.md](./COMMERCIAL-LICENSE.md) and [COMMERCIAL_ACCESS.md](
 ## Quick Start
 
 ```typescript
-import { pipe } from 'elevate-ts/Function'
-import { Just, map, chain } from 'elevate-ts/Maybe'
+import { pipe } from 'elevate-ts/Function';
+import { Just, map, chain } from 'elevate-ts/Maybe';
 ```
 
 ### B. Create `COMMERCIAL_ACCESS.md`
 
-```markdown
+````markdown
 # Commercial Package Access
 
 This guide explains how to install `@zambit/elevate-ts-commercial` from GitHub Packages.
@@ -230,6 +231,7 @@ Ask Zambit for a GitHub personal access token. It looks like:
 ```text
 ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ```
+````
 
 Or create your own:
 
@@ -335,7 +337,7 @@ Contact: [support@zambit.com](mailto:support@zambit.com)
 
 Add this section:
 
-```markdown
+````markdown
 ## Publishing Flow
 
 ### AGPL Version
@@ -344,6 +346,7 @@ Add this section:
 git tag v1.0.0      # Triggers publish to npmjs.org
 git push --tags
 ```
+````
 
 GitHub Actions automatically:
 
@@ -495,16 +498,16 @@ It has permission to publish to GitHub Packages by default.
 
 ## Part 5: Summary
 
-| Aspect | AGPL | Commercial |
-|--------|------|------------|
-| Package name | `elevate-ts` | `@zambit/elevate-ts-commercial` |
-| Registry | npmjs.org | GitHub Packages |
-| Git tag pattern | `v1.0.0` | `v1.0.0-commercial` |
-| Public? | Yes | No (GitHub auth required) |
-| Discovery | Visible on npmjs | GitHub Packages only |
-| License file | AGPL-3.0 | Commercial License |
-| Authentication | None (public) | GitHub token |
-| Automation | GitHub Actions | GitHub Actions |
+| Aspect          | AGPL             | Commercial                      |
+| --------------- | ---------------- | ------------------------------- |
+| Package name    | `elevate-ts`     | `@zambit/elevate-ts-commercial` |
+| Registry        | npmjs.org        | GitHub Packages                 |
+| Git tag pattern | `v1.0.0`         | `v1.0.0-commercial`             |
+| Public?         | Yes              | No (GitHub auth required)       |
+| Discovery       | Visible on npmjs | GitHub Packages only            |
+| License file    | AGPL-3.0         | Commercial License              |
+| Authentication  | None (public)    | GitHub token                    |
+| Automation      | GitHub Actions   | GitHub Actions                  |
 
 ---
 

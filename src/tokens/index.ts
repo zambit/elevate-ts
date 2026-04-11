@@ -9,13 +9,6 @@
  *   type MyColor = ColorTokens
  */
 
-export type {
-  TokenConfig,
-  ColorTokens,
-  SpacingTokens,
-  FontSizeTokens,
-  RadiusTokens,
-  TransitionTokens
-} from './config.js'
+export type { TokenConfig, ColorTokens, SpacingTokens, FontSizeTokens, RadiusTokens, TransitionTokens } from './config.js';
 
-export { tokenConfig } from './config.js'
+export { tokenConfig } from './config.js';

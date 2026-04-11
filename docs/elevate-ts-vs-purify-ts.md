@@ -2,25 +2,24 @@
 
 ## Overview
 
-Both **elevate-ts** and **purify-ts** provide algebraic data types for functional programming in TypeScript, but they
-represent different philosophies and use cases.
+Both **elevate-ts** and **purify-ts** provide algebraic data types for functional programming in TypeScript, but they represent different philosophies and use cases.
 
 - **purify-ts**: A mature, class-based library with method chaining and traditional object-oriented composition
 - **elevate-ts**: A modern, point-free, data-last library optimized for pipe composition and Cloudflare Workers
 
 ## Quick Comparison
 
-| Aspect | purify-ts | elevate-ts |
-|--------|-----------|-----------|
-| **API Style** | Method chaining (OOP) | Point-free, data-last (FP) |
-| **Composition** | `.map().chain().getOrElse()` | `pipe(value, map(f), chain(g))` |
-| **Argument Order** | Data first (wrapped value implicit) | Data last (explicit via pipe) |
-| **Dependencies** | Dependencies included | Zero runtime dependencies |
-| **Node.js Builtins** | May use them | None (Cloudflare Workers ready) |
-| **Bundle Size** | Larger | Minimal |
-| **Fantasy Land** | Compliant | Compliant (v5) |
-| **ESM Support** | Yes, but varied | ESM-first with `.js` extensions |
-| **Type Safety** | Strong | Strong, fully typed |
+| Aspect               | purify-ts                           | elevate-ts                      |
+| -------------------- | ----------------------------------- | ------------------------------- |
+| **API Style**        | Method chaining (OOP)               | Point-free, data-last (FP)      |
+| **Composition**      | `.map().chain().getOrElse()`        | `pipe(value, map(f), chain(g))` |
+| **Argument Order**   | Data first (wrapped value implicit) | Data last (explicit via pipe)   |
+| **Dependencies**     | Dependencies included               | Zero runtime dependencies       |
+| **Node.js Builtins** | May use them                        | None (Cloudflare Workers ready) |
+| **Bundle Size**      | Larger                              | Minimal                         |
+| **Fantasy Land**     | Compliant                           | Compliant (v5)                  |
+| **ESM Support**      | Yes, but varied                     | ESM-first with `.js` extensions |
+| **Type Safety**      | Strong                              | Strong, fully typed             |
 
 ## Why Choose elevate-ts?
 
@@ -31,19 +30,15 @@ represent different philosophies and use cases.
 
 ```typescript
 // Works in Cloudflare Workers
-import { pipe } from 'elevate-ts/Function'
-import { Just, map, chain } from 'elevate-ts/Maybe'
+import { pipe } from 'elevate-ts/Function';
+import { Just, map, chain } from 'elevate-ts/Maybe';
 
 export default {
   fetch(request: Request) {
-    const result = pipe(
-      data,
-      map(parse),
-      chain(validate)
-    )
-    return new Response(JSON.stringify(result))
+    const result = pipe(data, map(parse), chain(validate));
+    return new Response(JSON.stringify(result));
   }
-}
+};
 ```
 
 ### 2. **Point-Free Composition**
@@ -55,18 +50,18 @@ export default {
 ```typescript
 // purify-ts (method chaining)
 const result = getUserById(userId)
-  .map(user => user.email)
-  .chain(email => validateEmail(email))
-  .getOrElse('Invalid email')
+  .map((user) => user.email)
+  .chain((email) => validateEmail(email))
+  .getOrElse('Invalid email');
 
 // elevate-ts (point-free)
 const result = pipe(
   userId,
   getUserById,
-  map(user => user.email),
+  map((user) => user.email),
   chain(validateEmail),
   getOrElse('Invalid email')
-)
+);
 ```
 
 ### 3. **Data-Last Argument Order**
@@ -77,15 +72,15 @@ const result = pipe(
 
 ```typescript
 // purify-ts
-const double = (value: number) => value * 2
-const arr = [1, 2, 3]
-const doubled = arr.map(double) // Method call on array
+const double = (value: number) => value * 2;
+const arr = [1, 2, 3];
+const doubled = arr.map(double); // Method call on array
 
 // elevate-ts (data-last)
-const double = (n: number) => n * 2
-const arr = [1, 2, 3]
-const mapDouble = map(double) // Partial application
-const doubled = pipe(arr, mapDouble) // Reusable transformation
+const double = (n: number) => n * 2;
+const arr = [1, 2, 3];
+const mapDouble = map(double); // Partial application
+const doubled = pipe(arr, mapDouble); // Reusable transformation
 ```
 
 ### 4. **Smaller & Faster**
@@ -118,8 +113,8 @@ const doubled = pipe(arr, mapDouble) // Reusable transformation
 ```typescript
 // Feels natural with one variable
 const user = Maybe.fromNullable(getUserData(id))
-  .map(u => u.name)
-  .getOrElse('Unknown')
+  .map((u) => u.name)
+  .getOrElse('Unknown');
 ```
 
 ### 3. **More Operators & Type Classes**
@@ -135,29 +130,29 @@ const user = Maybe.fromNullable(getUserData(id))
 **purify-ts:**
 
 ```typescript
-import { Maybe, fromNullable } from 'purify-ts/Maybe'
-import { Left, Right } from 'purify-ts/Either'
+import { Maybe, fromNullable } from 'purify-ts/Maybe';
+import { Left, Right } from 'purify-ts/Either';
 
 interface User {
-  id: number
-  email: string
+  id: number;
+  email: string;
 }
 
 const getUserEmail = (user: User | null): string =>
   fromNullable(user)
-    .map(u => u.email)
-    .getOrElse('no-email')
+    .map((u) => u.email)
+    .getOrElse('no-email');
 ```
 
 **elevate-ts:**
 
 ```typescript
-import { pipe } from 'elevate-ts/Function'
-import { fromNullable, map, getOrElse } from 'elevate-ts/Maybe'
+import { pipe } from 'elevate-ts/Function';
+import { fromNullable, map, getOrElse } from 'elevate-ts/Maybe';
 
 interface User {
-  id: number
-  email: string
+  id: number;
+  email: string;
 }
 
 const getUserEmail = (user: User | null): string =>
@@ -166,7 +161,7 @@ const getUserEmail = (user: User | null): string =>
     fromNullable,
     map((u: User) => u.email),
     getOrElse('no-email')
-  )
+  );
 ```
 
 ### Example 2: Validation with Error Handling
@@ -174,45 +169,43 @@ const getUserEmail = (user: User | null): string =>
 **purify-ts:**
 
 ```typescript
-import { Right, Left, Either } from 'purify-ts/Either'
+import { Right, Left, Either } from 'purify-ts/Either';
 
 const parseAge = (raw: string): Either<string, number> => {
-  const n = parseInt(raw, 10)
-  return isNaN(n) ? Left('Not a number') : Right(n)
-}
+  const n = parseInt(raw, 10);
+  return isNaN(n) ? Left('Not a number') : Right(n);
+};
 
-const validateAge = (age: number): Either<string, number> =>
-  age >= 0 && age <= 150 ? Right(age) : Left('Invalid age range')
+const validateAge = (age: number): Either<string, number> => (age >= 0 && age <= 150 ? Right(age) : Left('Invalid age range'));
 
 const getAdultStatus = (userInput: string): string =>
   parseAge(userInput)
     .chain(validateAge)
-    .map(age => `Adult: ${age >= 18}`)
-    .getOrElse('Invalid input')
+    .map((age) => `Adult: ${age >= 18}`)
+    .getOrElse('Invalid input');
 ```
 
 **elevate-ts:**
 
 ```typescript
-import { pipe } from 'elevate-ts/Function'
-import { Right, Left, chain, map, getOrElse as getOrElseEither } from 'elevate-ts/Either'
+import { pipe } from 'elevate-ts/Function';
+import { Right, Left, chain, map, getOrElse as getOrElseEither } from 'elevate-ts/Either';
 
 const parseAge = (raw: string): Either<string, number> => {
-  const n = parseInt(raw, 10)
-  return isNaN(n) ? Left('Not a number') : Right(n)
-}
+  const n = parseInt(raw, 10);
+  return isNaN(n) ? Left('Not a number') : Right(n);
+};
 
-const validateAge = (age: number): Either<string, number> =>
-  age >= 0 && age <= 150 ? Right(age) : Left('Invalid age range')
+const validateAge = (age: number): Either<string, number> => (age >= 0 && age <= 150 ? Right(age) : Left('Invalid age range'));
 
 const getAdultStatus = (userInput: string): string =>
   pipe(
     userInput,
     parseAge,
     chain(validateAge),
-    map(age => `Adult: ${age >= 18}`),
+    map((age) => `Adult: ${age >= 18}`),
     getOrElseEither('Invalid input')
-  )
+  );
 ```
 
 ### Example 3: Composing Multiple Transformations
@@ -221,34 +214,34 @@ const getAdultStatus = (userInput: string): string =>
 
 ```typescript
 const processOrder = (orderId: string): string => {
-  let result = Maybe.fromNullable(getOrder(orderId))
-  if (result.isNothing()) return 'Order not found'
+  let result = Maybe.fromNullable(getOrder(orderId));
+  if (result.isNothing()) return 'Order not found';
 
-  result = result.map(o => o.items).flatMap(validateItems)
-  if (result.isNothing()) return 'Invalid items'
+  result = result.map((o) => o.items).flatMap(validateItems);
+  if (result.isNothing()) return 'Invalid items';
 
-  result = result.map(items => items.reduce((sum, i) => sum + i.price, 0))
-  return `Total: ${result.getOrElse(0)}`
-}
+  result = result.map((items) => items.reduce((sum, i) => sum + i.price, 0));
+  return `Total: ${result.getOrElse(0)}`;
+};
 ```
 
 **elevate-ts (much cleaner):**
 
 ```typescript
-import { pipe } from 'elevate-ts/Function'
-import { fromNullable, map, chain, getOrElse } from 'elevate-ts/Maybe'
+import { pipe } from 'elevate-ts/Function';
+import { fromNullable, map, chain, getOrElse } from 'elevate-ts/Maybe';
 
 const processOrder = (orderId: string): string =>
   pipe(
     orderId,
     getOrder,
     fromNullable,
-    map(o => o.items),
+    map((o) => o.items),
     chain(validateItems),
-    map(items => items.reduce((sum, i) => sum + i.price, 0)),
-    map(total => `Total: ${total}`),
+    map((items) => items.reduce((sum, i) => sum + i.price, 0)),
+    map((total) => `Total: ${total}`),
     getOrElse('Invalid order')
-  )
+  );
 ```
 
 ## When to Use elevate-ts
@@ -292,59 +285,43 @@ const processOrder = (orderId: string): string =>
 
 ```typescript
 // purify-ts
-import { Maybe, Just, Nothing } from 'purify-ts/Maybe'
-import { Either, Left, Right } from 'purify-ts/Either'
+import { Maybe, Just, Nothing } from 'purify-ts/Maybe';
+import { Either, Left, Right } from 'purify-ts/Either';
 
 // elevate-ts (use aliases if importing from both modules)
-import { Just, Nothing, map, chain, getOrElse } from 'elevate-ts/Maybe'
-import { Left, Right, chain as chainEither, map as mapEither,
-  getOrElse as getOrElseEither } from 'elevate-ts/Either'
-import { pipe } from 'elevate-ts/Function'
+import { Just, Nothing, map, chain, getOrElse } from 'elevate-ts/Maybe';
+import { Left, Right, chain as chainEither, map as mapEither, getOrElse as getOrElseEither } from 'elevate-ts/Either';
+import { pipe } from 'elevate-ts/Function';
 ```
 
 ### 2. Convert Method Chains to Pipe
 
 ```typescript
 // purify-ts
-value
-  .map(transform)
-  .chain(validate)
-  .getOrElse(defaultValue)
+value.map(transform).chain(validate).getOrElse(defaultValue);
 
 // elevate-ts
-pipe(
-  value,
-  map(transform),
-  chain(validate),
-  getOrElse(defaultValue)
-)
+pipe(value, map(transform), chain(validate), getOrElse(defaultValue));
 ```
 
 ### 3. Reuse Composed Transformations
 
 ```typescript
 // elevate-ts enables this naturally
-const mapEmail = map((u: User) => u.email)
-const validateEmail = chain(email => isValidEmail(email) ? Just(email) : Nothing)
+const mapEmail = map((u: User) => u.email);
+const validateEmail = chain((email) => (isValidEmail(email) ? Just(email) : Nothing));
 
-const getValidEmail = (user: User | null) =>
-  pipe(
-    user,
-    fromNullable,
-    mapEmail,
-    validateEmail,
-    getOrElse('no-email')
-  )
+const getValidEmail = (user: User | null) => pipe(user, fromNullable, mapEmail, validateEmail, getOrElse('no-email'));
 ```
 
 ## Performance Characteristics
 
-| Scenario | purify-ts | elevate-ts |
-|----------|-----------|-----------|
-| Bundle Size (gzipped) | ~4–6KB | ~1–2KB |
-| Runtime Speed | Fast | Fast (same operations) |
-| Tree-Shaking | Good | Excellent |
-| Edge Runtime (Workers) | ⚠️ Problematic | ✅ Native |
+| Scenario               | purify-ts      | elevate-ts             |
+| ---------------------- | -------------- | ---------------------- |
+| Bundle Size (gzipped)  | ~4–6KB         | ~1–2KB                 |
+| Runtime Speed          | Fast           | Fast (same operations) |
+| Tree-Shaking           | Good           | Excellent              |
+| Edge Runtime (Workers) | ⚠️ Problematic | ✅ Native              |
 
 Both are production-ready. Bundle size advantage goes to elevate-ts for edge/worker deployments.
 
@@ -355,6 +332,5 @@ Both are production-ready. Bundle size advantage goes to elevate-ts for edge/wor
 - They solve the same domain (railroad-oriented programming) with different trade-offs
 - Choice depends on your runtime, team style, and bundle constraints
 
-For new projects targeting modern runtimes, **elevate-ts** is recommended. For existing
-purify-ts codebases that work well, there's no urgent need to migrate—but new features
-should consider elevate-ts.
+For new projects targeting modern runtimes, **elevate-ts** is recommended. For existing purify-ts codebases that work well, there's no urgent need to migrate—but new features should consider
+elevate-ts.

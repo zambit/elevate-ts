@@ -94,11 +94,11 @@ npm install
 Import from the private package like any other:
 
 ```typescript
-import { Either, Left, Right } from '@zambit/elevate-ts-commercial'
-import { Maybe, Just, Nothing } from '@zambit/elevate-ts-commercial'
+import { Either, Left, Right } from '@zambit/elevate-ts-commercial';
+import { Maybe, Just, Nothing } from '@zambit/elevate-ts-commercial';
 
 // Use as normal
-const result: Either<string, number> = Right(42)
+const result: Either<string, number> = Right(42);
 ```
 
 ---
@@ -119,20 +119,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      
+
       # Create .npmrc with token
       - name: Configure npm
         run: |
           echo "@zambit:registry=https://registry.npmjs.org/" >> ~/.npmrc
           echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" >> ~/.npmrc
-      
+
       - name: Install dependencies
         run: npm install
-      
+
       - name: Build
         run: npm run build
 ```
@@ -246,10 +246,10 @@ If you have issues:
 
 ## Quick Reference
 
-| Task | Command |
-|------|---------|
-| View your .npmrc | `cat ~/.npmrc` |
-| Test token works | `npm view @zambit/elevate-ts-commercial` |
-| Clear npm cache | `npm cache clean --force` |
-| Install package | `npm install @zambit/elevate-ts-commercial` |
-| Update package | `npm update @zambit/elevate-ts-commercial` |
+| Task             | Command                                     |
+| ---------------- | ------------------------------------------- |
+| View your .npmrc | `cat ~/.npmrc`                              |
+| Test token works | `npm view @zambit/elevate-ts-commercial`    |
+| Clear npm cache  | `npm cache clean --force`                   |
+| Install package  | `npm install @zambit/elevate-ts-commercial` |
+| Update package   | `npm update @zambit/elevate-ts-commercial`  |

@@ -6,11 +6,8 @@ This is a **shared, workspace-level design token system** used by all elevate-ts
 
 All samples use identical design tokens generated at build time:
 
-✅ **Single source of truth** — All tokens defined in one place (src/tokens/config.ts)
-✅ **Consistency guaranteed** — All samples have identical styling
-✅ **Immutable CSS** — Pre-calculated values, zero runtime `calc()` overhead
-✅ **Type-safe** — TypeScript types for token names (IDE autocomplete)
-✅ **Zero duplication** — Don't repeat token logic across 7 samples
+✅ **Single source of truth** — All tokens defined in one place (src/tokens/config.ts) ✅ **Consistency guaranteed** — All samples have identical styling ✅ **Immutable CSS** — Pre-calculated values,
+zero runtime `calc()` overhead ✅ **Type-safe** — TypeScript types for token names (IDE autocomplete) ✅ **Zero duplication** — Don't repeat token logic across 7 samples
 
 ## File Structure
 
@@ -35,11 +32,15 @@ All token values are defined in `src/tokens/config.ts`:
 
 ```typescript
 export const tokenConfig = {
-  colors: { /* ... */ },
-  spacing: generateSpacing(),   // Base 0.25rem × multipliers
-  typography: { /* ... */ },
+  colors: {
+    /* ... */
+  },
+  spacing: generateSpacing(), // Base 0.25rem × multipliers
+  typography: {
+    /* ... */
+  }
   // etc.
-}
+};
 ```
 
 ### 2. Generate CSS Automatically
@@ -69,7 +70,7 @@ Each sample imports the same CSS:
 
 ```typescript
 // src/App.svelte (or any sample)
-import './styles/tokens.css'  // Same for all samples
+import './styles/tokens.css'; // Same for all samples
 ```
 
 Then uses the tokens:
@@ -126,12 +127,7 @@ The `brand` color is your **primary customization point**:
 Linear scale: base (0.25rem) × multipliers (1-16):
 
 ```css
---spacing-0: 0
---spacing-1: 0.25rem
---spacing-2: 0.5rem
---spacing-4: 1rem
---spacing-8: 2rem
---spacing-16: 4rem
+--spacing-0: 0 --spacing-1: 0.25rem --spacing-2: 0.5rem --spacing-4: 1rem --spacing-8: 2rem --spacing-16: 4rem;
 ```
 
 ### Font Sizes
@@ -139,12 +135,7 @@ Linear scale: base (0.25rem) × multipliers (1-16):
 Modular scale using 1.125 ratio (perfect fifth):
 
 ```css
---font-size-xs: 0.790rem
---font-size-sm: 0.889rem
---font-size-base: 1rem
---font-size-lg: 1.125rem
---font-size-xl: 1.266rem
---font-size-2xl: 1.424rem
+--font-size-xs: 0.79rem --font-size-sm: 0.889rem --font-size-base: 1rem --font-size-lg: 1.125rem --font-size-xl: 1.266rem --font-size-2xl: 1.424rem;
 ```
 
 ### Other Categories
@@ -169,12 +160,12 @@ When you finalize elevate-ts branding, change the brand color (no code changes n
    export const tokenConfig = {
      colors: {
        // Change just the hue, keep saturation/lightness consistent
-       'brand': 'hsl(45, 85%, 55%)',      // Your brand color
+       brand: 'hsl(45, 85%, 55%)', // Your brand color
        'brand-dark': 'hsl(45, 85%, 35%)',
-       'brand-light': 'hsl(45, 85%, 92%)',
+       'brand-light': 'hsl(45, 85%, 92%)'
        // ... other colors stay the same
      }
-   }
+   };
    ```
 
 2. **Run generator**
@@ -192,11 +183,11 @@ When you finalize elevate-ts branding, change the brand color (no code changes n
    ```typescript
    export const tokenConfig = {
      colors: {
-       'brand': 'hsl(260, 85%, 55%)',  // Brand
-       'primary': 'hsl(220, 100%, 50%)',  // Change existing
-       'custom-new': 'hsl(180, 75%, 60%)',  // Add new
+       brand: 'hsl(260, 85%, 55%)', // Brand
+       primary: 'hsl(220, 100%, 50%)', // Change existing
+       'custom-new': 'hsl(180, 75%, 60%)' // Add new
      }
-   }
+   };
    ```
 
 2. **Run generator**
@@ -213,14 +204,18 @@ Change one base value, all derived values update:
 
 ```typescript
 function generateSpacing() {
-  const base = 0.25  // ← Change here, all 16 spacing values update
-  return { /* ... */ }
+  const base = 0.25; // ← Change here, all 16 spacing values update
+  return {
+    /* ... */
+  };
 }
 
 function generateFontSizes() {
-  const base = 1
-  const ratio = 1.125  // ← Change ratio for larger/smaller steps
-  return { /* ... */ }
+  const base = 1;
+  const ratio = 1.125; // ← Change ratio for larger/smaller steps
+  return {
+    /* ... */
+  };
 }
 ```
 
@@ -232,7 +227,7 @@ Every sample imports the shared tokens:
 
 ```typescript
 // src/App.svelte, src/index.ts, or wherever styles are loaded
-import './styles/tokens.css'
+import './styles/tokens.css';
 ```
 
 ### Use in CSS
@@ -251,12 +246,12 @@ import './styles/tokens.css'
 Get IDE autocomplete for token names:
 
 ```typescript
-import { ColorTokens, SpacingTokens } from '@/tokens'
+import { ColorTokens, SpacingTokens } from '@/tokens';
 
-type MyColor = ColorTokens
+type MyColor = ColorTokens;
 // Type: 'primary' | 'error' | 'neutral-50' | ...
 
-type MySpacing = SpacingTokens
+type MySpacing = SpacingTokens;
 // Type: '0' | '1' | '2' | ... | '16'
 ```
 
@@ -300,10 +295,10 @@ export const tokenConfig = {
   // ... existing ...
 
   custom: {
-    'value1': '...',
-    'value2': '...'
+    value1: '...',
+    value2: '...'
   }
-}
+};
 ```
 
 Generator automatically outputs:
@@ -317,14 +312,14 @@ Generator automatically outputs:
 
 ```typescript
 // In src/tokens/index.ts
-export type CustomTokens = keyof typeof tokenConfig.custom
+export type CustomTokens = keyof typeof tokenConfig.custom;
 ```
 
 Now components can use:
 
 ```typescript
-import { CustomTokens } from '@/tokens'
-type MyCustom = CustomTokens
+import { CustomTokens } from '@/tokens';
+type MyCustom = CustomTokens;
 ```
 
 ## Troubleshooting

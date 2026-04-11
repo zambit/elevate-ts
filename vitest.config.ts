@@ -1,4 +1,4 @@
-import { defineConfig } from 'vitest/config'
+import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
@@ -11,7 +11,7 @@ export default defineConfig({
         'scripts/**',
         'src/tokens/**',
         'src/index.ts',
-        '**/*Proto\'fantasy-land' // Fantasy Land protocol implementation details
+        "**/*Proto'fantasy-land" // Fantasy Land protocol implementation details
       ],
       thresholds: {
         lines: 80,
@@ -21,4 +21,4 @@ export default defineConfig({
       }
     }
   }
-})
+});

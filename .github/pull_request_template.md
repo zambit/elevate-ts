@@ -48,6 +48,5 @@ How have you tested these changes?
 
 ---
 
-Contributions to `elevate-ts` are accepted only under the contributor terms described in
-[CONTRIBUTING.md](../CONTRIBUTING.md), including [CLA-INDIVIDUAL.md](../CLA-INDIVIDUAL.md) and
+Contributions to `elevate-ts` are accepted only under the contributor terms described in [CONTRIBUTING.md](../CONTRIBUTING.md), including [CLA-INDIVIDUAL.md](../CLA-INDIVIDUAL.md) and
 [CLA-CORPORATE.md](../CLA-CORPORATE.md) where applicable.

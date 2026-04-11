@@ -1,7 +1,6 @@
 # Publication Checklist for elevate-ts
 
-This project uses [Changesets](https://github.com/changesets/changesets) for semantic versioning and
-automated changelog generation. Follow this process to publish a new version.
+This project uses [Changesets](https://github.com/changesets/changesets) for semantic versioning and automated changelog generation. Follow this process to publish a new version.
 
 ## Release Process
 
@@ -26,7 +25,7 @@ This creates a file in `.changeset/` like:
 
 ```markdown
 ---
-"elevate-ts": minor
+'elevate-ts': minor
 ---
 
 Added Reader monad for dependency injection

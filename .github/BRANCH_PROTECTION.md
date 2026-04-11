@@ -5,6 +5,7 @@ This document describes the branch protection configuration for the `main` branc
 ## Overview
 
 All changes to `main` must come through a pull request with:
+
 - Passing CI/CD checks (CLA, lint, test, build)
 - At least 1 approval review
 - Linear git history (rebase merge only)
@@ -53,6 +54,7 @@ The GitHub API requires a `restrictions` field in the JSON payload, even if you 
 - **`"restrictions": { "users": [...], "teams": [...], "apps": [...] }`** — Specific users/teams only
 
 Omitting this field entirely results in:
+
 ```
 Invalid request.
 "restrictions" wasn't supplied. (HTTP 422)
@@ -61,11 +63,13 @@ Invalid request.
 ### Status Check Names
 
 The `required_status_checks.contexts` array must match your actual GitHub Actions workflow names:
+
 - These are the `name:` values from `.github/workflows/*.yml`
 - They must exist and pass before merge is allowed
 - If a workflow name changes, update this file
 
 Current workflows:
+
 - `CLA` (from cla.yml)
 - `Test` (from test.yml)
 - `Build` (from build.yml)

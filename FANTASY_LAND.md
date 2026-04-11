@@ -31,12 +31,12 @@ Users don't use these directly in normal code. Instead, they use the friendly AP
 
 ```typescript
 // Normal usage (what users do)
-Either.map(f)(myEither)
-Either.chain(f)(myEither)
+Either.map(f)(myEither);
+Either.chain(f)(myEither);
 
 // Fantasy Land compliance (automatic when used with Fantasy Land libraries)
-const Fantasy = require('fantasy-land')
-myEither[Fantasy.map](f)  // ← enabled by flMap export
+const Fantasy = require('fantasy-land');
+myEither[Fantasy.map](f); // ← enabled by flMap export
 ```
 
 ## Why ESLint Reports "Unused"

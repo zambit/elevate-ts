@@ -13,14 +13,14 @@
 
 // Note: Individual modules are exported with namespace prefixes to avoid
 // naming conflicts (all monads export map, chain, ap, etc.)
-export * as Maybe from './Maybe.js'
-export * as Either from './Either.js'
-export * as Validation from './Validation.js'
-export * as Reader from './Reader.js'
-export * as State from './State.js'
-export * as Tuple from './Tuple.js'
-export * as NonEmptyList from './NonEmptyList.js'
-export * as List from './List.js'
-export * as Function from './Function.js'
-export * as MaybeAsync from './MaybeAsync.js'
-export * as EitherAsync from './EitherAsync.js'
+export * as Maybe from './Maybe.js';
+export * as Either from './Either.js';
+export * as Validation from './Validation.js';
+export * as Reader from './Reader.js';
+export * as State from './State.js';
+export * as Tuple from './Tuple.js';
+export * as NonEmptyList from './NonEmptyList.js';
+export * as List from './List.js';
+export * as Function from './Function.js';
+export * as MaybeAsync from './MaybeAsync.js';
+export * as EitherAsync from './EitherAsync.js';

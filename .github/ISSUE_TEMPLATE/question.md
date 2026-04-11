@@ -34,9 +34,11 @@ labels: 'question'
 ---
 
 ## Question
+
 What would you like to know?
 
 ## Context
+
 What are you trying to do? Provide any relevant code or error messages.
 
 ```typescript
@@ -44,9 +46,11 @@ What are you trying to do? Provide any relevant code or error messages.
 ```
 
 ## What You've Tried
+
 What have you already tried to solve this?
 
 ## Additional Context
+
 Any other details that might help answer your question (environment, versions, etc.)
 
 ---
