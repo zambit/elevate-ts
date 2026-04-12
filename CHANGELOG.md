@@ -1,11 +1,5 @@
 # Changelog
 
-## 0.1.3
-
-### Patch Changes
-
-- Add comprehensive Effect-TS vs elevate-ts technical comparison, improve pre-commit hooks with Prettier formatting check, and make CI/build checks more robust
-
 ## 0.1.2
 
 ### Patch Changes for 2026-04-09
