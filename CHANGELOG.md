@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.3.0
+
+### Added
+
+**HTTP** — CloudFlare Workers and Web Fetch API helpers. `jsonResponse`, `parseJSON`, `askEnv`, `requireEnv`, `withStatusCode`, `handleEither`, `handleEitherAsync`. Types: `SyncHTTPHandler`,
+`HTTPHandler`, `StatusMap`. See [HTTP guide](docs/HTTP.md).
+
+## 0.2.0
+
+### Added
+
+**Audit** — Operation tracking with time-travel replay. `createSession`, `withEnabled`, `withCaptureInputs`, `withCaptureOutputs`, `withGenerateId`, `record`, `track`, `getLog`, `getEntries`,
+`entryAt`, `inputAt`, `outputAt`, `replay`, `filterByOperation`, `filterByMonadType`. Types: `AuditConfig`, `AuditEntry`, `AuditLog`, `AuditSession`. See [Audit guide](docs/AUDIT.md).
+
 ## 0.1.2
 
 ### Patch Changes for 2026-04-09
