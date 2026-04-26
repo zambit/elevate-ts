@@ -5,11 +5,6 @@
 // elevate-ts
 // Re-exports added as each module is implemented.
 // See prompts/README.md for implementation order.
-//
-// TODO(audit): add @paralleldrive/cuid2 when time-travel audit subsystem
-// is implemented. Each audited operation will receive a cuid2-stamped ID
-// (monotonically sortable, collision-resistant across distributed Worker
-// instances) enabling deterministic replay and rewind of operation sequences.
 
 // Note: Individual modules are exported with namespace prefixes to avoid
 // naming conflicts (all monads export map, chain, ap, etc.)
@@ -24,3 +19,4 @@ export * as List from './List.js';
 export * as Function from './Function.js';
 export * as MaybeAsync from './MaybeAsync.js';
 export * as EitherAsync from './EitherAsync.js';
+export * as Audit from './Audit.js';
