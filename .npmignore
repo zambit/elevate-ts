@@ -42,6 +42,12 @@ CHANGELOG.md
 coverage/
 docs/
 
+# Build artifacts & source maps
+dist/**/*.tsbuildinfo
+dist/**/*.js.map
+dist/**/*.d.ts.map
+dist/src/
+
 # Lock files
 pnpm-lock.yaml
 pnpm-workspace.yaml

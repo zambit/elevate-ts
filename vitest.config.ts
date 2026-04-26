@@ -9,7 +9,7 @@ export default defineConfig({
       reporter: ['text', 'json', 'html'],
       exclude: [
         'scripts/**',
-        'src/tokens/**',
+        'locals/tokens/**',
         'src/index.ts',
         "**/*Proto'fantasy-land" // Fantasy Land protocol implementation details
       ],

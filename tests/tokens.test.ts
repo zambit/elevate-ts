@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { tokenConfig } from '../src/tokens/config.js';
-import { toCSSVarName, generateCSS } from '../src/tokens/cssGen.js';
+import { tokenConfig } from '../locals/tokens/config.js';
+import { toCSSVarName, generateCSS } from '../locals/tokens/cssGen.js';
 
 describe('tokenConfig', () => {
   describe('colors', () => {

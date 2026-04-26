@@ -454,3 +454,62 @@ Result with error branch wrapped in a lazy Promise. Rejections become `Left`; ne
 ### Execution
 
 - **`run(): Promise<Either<L, R>>`** — Execute an EitherAsync (property on the type)
+
+---
+
+## HTTP — CloudFlare Workers & Web Fetch API Helpers
+
+Utilities for building HTTP handlers with Either/EitherAsync, managing environment variables via Reader, and mapping domain errors to HTTP status codes.
+
+### Types
+
+- **`SyncHTTPHandler`** — `(req: Request) => Response`
+- **`HTTPHandler`** — `(req: Request) => Promise<Response>`
+- **`StatusMap<E>`** — `Partial<Record<E, number>> & { readonly default: number }`
+
+### Response Building
+
+- **`jsonResponse(status: number): (body: unknown) => Response`** — Create a JSON response with Content-Type header
+
+### JSON Parsing
+
+- **`parseJSON<T>(raw: string | null): Either<string, T>`** — Safe JSON parsing (null → Left, parse error → Left)
+
+### Environment Access via Reader
+
+- **`askEnv(key: string): Reader<Record<string, string | undefined>, Maybe<string>>`** — Read optional env variable
+- **`requireEnv(key: string): Reader<Record<string, string | undefined>, Either<string, string>>`** — Read required env variable
+
+### Status Code Mapping
+
+- **`withStatusCode<E extends string>(codes: StatusMap<E>): (error: E) => number`** — Map domain errors to HTTP status codes (with fallback to `default`)
+
+### Handler Wrappers
+
+- **`handleEither<E, A>(onLeft: (err: E) => Response, onRight: (val: A) => Response): (fn: (req: Request) => Either<E, A>) => SyncHTTPHandler`** — Wrap a synchronous Either-returning handler
+- **`handleEitherAsync<E, A>(onLeft: (err: E) => Response, onRight: (val: A) => Response): (fn: (req: Request) => EitherAsync<E, A>) => HTTPHandler`** — Wrap an asynchronous EitherAsync-returning
+  handler
+
+### Example: Complete Worker Handler
+
+```typescript
+import { HTTP, EitherAsync, Reader, Function } from '@zambit/elevate-ts';
+
+type DomainError = 'not-found' | 'unauthorized' | 'invalid-input';
+
+const statusMap = HTTP.withStatusCode<DomainError>({
+  'not-found': 404,
+  unauthorized: 401,
+  'invalid-input': 400,
+  default: 500
+});
+
+const handler = HTTP.handleEitherAsync(
+  (err) => HTTP.jsonResponse(statusMap(err))({ error: err }),
+  (result) => HTTP.jsonResponse(201)(result)
+)(processRequest);
+
+export default {
+  fetch: handler
+};
+```
