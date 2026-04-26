@@ -58,6 +58,7 @@ const result2 = pipe(
 | MaybeAsync   | Lazy async Maybe; rejects or throws become Nothing; never rejects         |
 | EitherAsync  | Lazy async Either; rejects become Left; never throws                      |
 | Audit        | Operation tracking with time-travel replay; configurable ID generation    |
+| HTTP         | CloudFlare Workers & Web Fetch API helpers; safe JSON, env, error mapping |
 
 ## Quick API Reference
 
@@ -166,6 +167,15 @@ filterByOperation(op) | filterByMonadType(monad) | entryAt(index);
 ```
 
 See [docs/AUDIT.md](./docs/AUDIT.md) for comprehensive guide with worked examples (simple, medium, complex scenarios).
+
+### HTTP
+
+```typescript
+jsonResponse(status) | parseJSON(raw) | askEnv(key) | requireEnv(key);
+withStatusCode(codes) | handleEither(onL, onR) | handleEitherAsync(onL, onR);
+```
+
+See [docs/HTTP.md](./docs/HTTP.md) for comprehensive guide with CloudFlare Workers examples (simple, medium, complex scenarios).
 
 ## Learning & Examples
 
