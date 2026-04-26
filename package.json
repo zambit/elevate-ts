@@ -102,7 +102,7 @@
     "lint:fix": "eslint . --ext .ts --fix",
     "format": "prettier --write \"**/*.{ts,tsx,json,md}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,json,md}\"",
-    "lint:md": "markdownlint \"**/*.md\"",
+    "lint:md": "markdownlint \"**/*.md\" --ignore CHANGELOG.md && markdownlint CHANGELOG.md --config .markdownlintrc.changelog.json",
     "check:nodeps": "node scripts/check-no-node-builtins.mjs",
     "prepare": "husky install",
     "changeset": "changeset",
@@ -142,7 +142,11 @@
     "*.{tsx,js,jsx,json}": "prettier --write",
     "*.md": [
       "prettier --write",
-      "markdownlint --fix"
+      "markdownlint --fix --ignore CHANGELOG.md"
+    ],
+    "CHANGELOG.md": [
+      "prettier --write",
+      "markdownlint --fix --config .markdownlintrc.changelog.json"
     ],
     ".changeset/*.md": "prettier --write"
   },
