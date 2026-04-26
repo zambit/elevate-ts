@@ -34,6 +34,58 @@ describe('EitherAsync', () => {
     });
   });
 
+  describe('of, right, left', () => {
+    it('of lifts a pure value into Right', async () => {
+      const eaa = EitherAsync.of(42);
+      const result = await eaa.run();
+      expect(result).toEqual(Either.Right(42));
+    });
+
+    it('of is lazy (computation does not execute until .run)', () => {
+      let executed = false;
+      const eaa = EitherAsync.of(() => {
+        executed = true;
+        return 42;
+      });
+      expect(executed).toBe(false);
+      expect(eaa.run).toBeDefined();
+    });
+
+    it('right lifts a pure value into Right', async () => {
+      const eaa = EitherAsync.right(99);
+      const result = await eaa.run();
+      expect(result).toEqual(Either.Right(99));
+    });
+
+    it('right is lazy', () => {
+      let executed = false;
+      const eaa = EitherAsync.right(() => {
+        executed = true;
+        return 99;
+      });
+      expect(executed).toBe(false);
+      expect(eaa.run).toBeDefined();
+    });
+
+    it('left lifts a pure error into Left', async () => {
+      const eaa = EitherAsync.left('error message');
+      const result = await eaa.run();
+      expect(result).toEqual(Either.Left('error message'));
+    });
+
+    it('left short-circuits chain (callback is not called)', async () => {
+      let called = false;
+      const eaa = EitherAsync.left('error');
+      const chained = EitherAsync.chain((_) => {
+        called = true;
+        return EitherAsync.right(42);
+      })(eaa);
+      const result = await chained.run();
+      expect(called).toBe(false);
+      expect(result).toEqual(Either.Left('error'));
+    });
+  });
+
   describe('fromPromise', () => {
     it('fromPromise lifts a resolved Promise', async () => {
       const p = Promise.resolve(42);
