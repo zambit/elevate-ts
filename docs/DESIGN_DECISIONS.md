@@ -90,6 +90,55 @@ const session = Audit.createSession({
 
 ---
 
+## Pre-Commit Hook Strategy: Staged Files Only (2026-04-26)
+
+**Decision:** Use `lint-staged` to check only staged files in pre-commit hooks, not the entire working directory.
+
+**Context:** The original pre-commit hook ran full-project linting (prettier, ESLint, markdownlint) on every commit. This caused a UX problem: untracked local files (diagnostic docs, notes,
+work-in-progress) in the working directory would fail linting and block the commit, even though they were never being committed.
+
+**Alternatives Considered:**
+
+1. **Full-project scanning (original)** — Run all linters on the entire codebase. Cost: Untracked files block commits; slow (scans dist/, node_modules/, etc.); no separation between staging and
+   working directory. Benefit: Catches lint errors in untracked files if they happen to be committed later.
+
+2. **Ignore untracked files explicitly** — Add logic to skip files not in git. Cost: Complex shell scripting; fragile across platforms; still slow; doesn't align with git semantics.
+
+3. **Use `lint-staged`** (chosen) — Only lint files in the staging area (what's actually being committed). Cost: Local files won't be linted until staged. Benefit: Aligns with git's core concept;
+   faster; clean UX.
+
+**Implementation:**
+
+```json
+"lint-staged": {
+  "*.ts": [
+    "prettier --write",
+    "eslint --fix --max-warnings 0"
+  ],
+  "*.{tsx,js,jsx,json}": "prettier --write",
+  "*.md": [
+    "prettier --write",
+    "markdownlint --fix"
+  ]
+}
+```
+
+Pre-commit hook:
+
+```sh
+pnpm lint-staged
+```
+
+**Why This Matters:**
+
+- **Aligns with git semantics:** Pre-commit hooks naturally check only staged content; full-directory scanning is a leaky abstraction.
+- **Faster commits:** Only touches files being committed, not the entire tree.
+- **Better UX:** Developers can have work-in-progress files, diagnostic docs, and local notes in the repo without accidental lint failures.
+- **Auto-fix ergonomics:** `lint-staged` re-stages fixed files automatically, so the commit includes corrected code without manual re-runs.
+- **Industry standard:** Major projects (React, TypeScript, Vue) use this pattern.
+
+---
+
 ## Future Decisions
 
 Add new decisions as they arise. Format:
