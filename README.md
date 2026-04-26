@@ -1,6 +1,7 @@
 # elevate-ts
 
-[![Coverage](https://img.shields.io/badge/coverage-77%25-brightgreen)](./coverage/index.html) [![npm](https://img.shields.io/badge/npm-0.1.2-lightgrey)](https://npmjs.com/package/@zambit/elevate-ts)
+[![Coverage](https://img.shields.io/badge/coverage-94.92%25-brightgreen)](./coverage/index.html)
+[![npm](https://img.shields.io/badge/npm-0.2.0-lightgrey)](https://npmjs.com/package/@zambit/elevate-ts)
 [![License: AGPL%20v3%2B](https://img.shields.io/badge/license-AGPL%20v3%2B-green.svg)](https://github.com/zambit/elevate-ts/blob/main/LICENSE)
 
 Point-free, data-last functional programming for TypeScript. Fantasy Land 5 compliant. Zero dependencies. Cloudflare Workers ready.
@@ -170,10 +171,6 @@ See [docs/AUDIT.md](./docs/AUDIT.md) for comprehensive guide with worked example
 
 - **[elevate-ts-learning](https://github.com/zambit/elevate-ts-learning)** - Comprehensive tutorial with interactive todo app and 4 learning guides
 - **[elevate-ts-samples](https://github.com/zambit/elevate-ts-samples)** - Production-ready examples (form validation, state management, list operations, workers)
-
-## Roadmap
-
-- Audit subsystem with time-travel replay (will use `@paralleldrive/cuid2` for operation-level ID stamping)
 
 ## Contributing
 

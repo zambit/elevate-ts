@@ -85,6 +85,11 @@
       "import": "./dist/esm/Audit.js",
       "require": "./dist/cjs/Audit.js",
       "types": "./dist/esm/Audit.d.ts"
+    },
+    "./HTTP": {
+      "import": "./dist/esm/HTTP.js",
+      "require": "./dist/cjs/HTTP.js",
+      "types": "./dist/esm/HTTP.d.ts"
     }
   },
   "scripts": {
@@ -129,10 +134,11 @@
     "vitest": "^1.0.4"
   },
   "lint-staged": {
-    "*.ts": [
+    "src/**/*.ts": [
       "prettier --write",
       "eslint --fix --max-warnings 0"
     ],
+    "tests/**/*.ts": "prettier --write",
     "*.{tsx,js,jsx,json}": "prettier --write",
     "*.md": [
       "prettier --write",
