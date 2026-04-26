@@ -1,6 +1,22 @@
 import { defineConfig } from 'vitest/config';
+import { fileURLToPath } from 'url';
+import { dirname, resolve } from 'path';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
+  resolve: {
+    alias: [
+      {
+        find: /^@zambit\/elevate-ts\/(.+)$/,
+        replacement: resolve(__dirname, 'src/$1.ts'),
+      },
+      {
+        find: '@zambit/elevate-ts',
+        replacement: resolve(__dirname, 'src/index.ts'),
+      },
+    ],
+  },
   test: {
     include: ['tests/**/*.test.ts'],
     exclude: ['tests/tokens.test.ts'],

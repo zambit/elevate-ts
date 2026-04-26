@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.1
+
+### Patch Changes
+
+- Fix Audit module import error in Vitest. Add resolve.alias in vitest.config.ts to map @zambit/elevate-ts to src/ for proper test resolution. Fix src/tsconfig.json to produce actual CommonJS output
+  by changing module option from "nodenext" to "CommonJS". Add tests/Audit.package.test.ts to verify package imports work correctly.
+
 ## 0.4.0
 
 ### Minor Changes
