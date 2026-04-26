@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.4.0
+
+### Minor Changes
+
+- e0d2243: # HTTP Module
+
+  Add HTTP module for CloudFlare Workers and Web Fetch API runtimes with safe JSON parsing, environment variable access, and error-to-HTTP-status mapping.
+
+### Patch Changes
+
+- Fix ESM build output and add export validation
+
+  Fixed tsconfig.esm.json rootDir to output ESM files to dist/esm/ instead of dist/esm/src/, correcting the 0.2.0+ npm packaging bug. Added check:exports validation script that verifies all declared
+  exports in package.json exist on disk before publishing, preventing future broken releases.
+
 ## 0.3.0
 
 ### Added
