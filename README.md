@@ -11,23 +11,34 @@ Point-free, data-last functional programming for TypeScript. Fantasy Land 5 comp
 pnpm add @zambit/elevate-ts
 ```
 
+## Philosophy
+
+- **Point-free**: Functions are composed by shape, not by naming intermediate values
+- **Data-last**: Configuration arguments precede the data being transformed
+- **Pure**: No classes, no mutations, ≤15 lines per function
+- **Cloudflare Workers**: No Node.js built-ins, no DOM APIs
+- **Fantasy Land 5**: All applicable types implement the spec
+- **Zero runtime dependencies**: Ship only pure TypeScript
+
 ## Quick Start
 
 ```typescript
 import { pipe } from '@zambit/elevate-ts/Function';
 import { Just, Nothing, map, chain } from '@zambit/elevate-ts/Maybe';
 
-/** Create a Just value */
-const ma = Just(5);
-
-/** Use pipe to compose operations */
-const result = pipe(
-  ma,
-  map((a) => a * 2),
-  chain((b) => (b > 5 ? Just(b) : Nothing))
+// When condition is met
+const result1 = pipe(
+  Just(5),
+  map((a) => a * 2), // Just(10)
+  chain((b) => (b > 5 ? Just(b) : Nothing)) // Just(10)
 );
 
-// result is Just(10)
+// When condition fails
+const result2 = pipe(
+  Just(2),
+  map((a) => a * 2), // Just(4)
+  chain((b) => (b > 5 ? Just(b) : Nothing)) // Nothing
+);
 ```
 
 ## Modules
@@ -45,6 +56,7 @@ const result = pipe(
 | Function     | Function composition and utilities; pipe, flow, curry, memoize, once, tap |
 | MaybeAsync   | Lazy async Maybe; rejects or throws become Nothing; never rejects         |
 | EitherAsync  | Lazy async Either; rejects become Left; never throws                      |
+| Audit        | Operation tracking with time-travel replay; configurable ID generation    |
 
 ## Quick API Reference
 
@@ -144,14 +156,15 @@ fromPromise(p, onError) | tryCatch(f, onError)
 toMaybeAsync(ea)
 ```
 
-## Philosophy
+### Audit
 
-- **Point-free**: Functions are composed by shape, not by naming intermediate values
-- **Data-last**: Configuration arguments precede the data being transformed
-- **Pure**: No classes, no mutations, ≤15 lines per function
-- **Cloudflare Workers**: No Node.js built-ins, no DOM APIs
-- **Fantasy Land 5**: All applicable types implement the spec
-- **Zero runtime dependencies**: Ship only pure TypeScript
+```typescript
+createSession(opts) | withEnabled(bool) | withCaptureInputs(bool);
+track(op, fn) | record(op, result) | getLog() | replay(index);
+filterByOperation(op) | filterByMonadType(monad) | entryAt(index);
+```
+
+See [docs/AUDIT.md](./docs/AUDIT.md) for comprehensive guide with worked examples (simple, medium, complex scenarios).
 
 ## Learning & Examples
 

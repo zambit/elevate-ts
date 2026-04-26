@@ -16,3 +16,4 @@ prompts/
 # Claude Code local files
 CLAUDE.md
 llm-context
+locals/
