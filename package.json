@@ -103,6 +103,7 @@
     "format": "prettier --write \"**/*.{ts,tsx,json,md}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,json,md}\"",
     "lint:md": "markdownlint \"**/*.md\" --ignore CHANGELOG.md && markdownlint CHANGELOG.md --config .markdownlintrc.changelog.json",
+    "check:exports": "node scripts/check-exports.mjs",
     "check:nodeps": "node scripts/check-no-node-builtins.mjs",
     "prepare": "husky install",
     "changeset": "changeset",
@@ -111,7 +112,7 @@
     "release": "pnpm changeset:version && pnpm changeset:publish",
     "publish:agpl": "npm publish --tag agpl",
     "publish:commercial": "tsx scripts/publish-commercial.ts",
-    "prepublishOnly": "pnpm build && pnpm test && pnpm lint:md && pnpm check:nodeps"
+    "prepublishOnly": "pnpm build && pnpm check:exports && pnpm test && pnpm lint:md && pnpm check:nodeps"
   },
   "devDependencies": {
     "@changesets/changelog-git": "^0.2.0",
