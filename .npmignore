@@ -47,6 +47,7 @@ dist/**/*.tsbuildinfo
 dist/**/*.js.map
 dist/**/*.d.ts.map
 dist/src/
+dist/**/src/
 
 # Lock files
 pnpm-lock.yaml
