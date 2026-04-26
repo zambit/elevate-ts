@@ -121,7 +121,7 @@
     "glob": "^10.4.5",
     "husky": "^8.0.3",
     "lint-staged": "^15.2.0",
-    "markdownlint-cli": "^0.37.0",
+    "markdownlint-cli": "^0.48.0",
     "prettier": "^3.1.1",
     "tsx": "^4.7.0",
     "typescript": "^5.3.3",
@@ -129,8 +129,15 @@
     "vitest": "^1.0.4"
   },
   "lint-staged": {
-    "*.ts": "eslint --fix",
-    "*.{ts,json,md}": "prettier --write"
+    "*.ts": [
+      "prettier --write",
+      "eslint --fix --max-warnings 0"
+    ],
+    "*.{tsx,js,jsx,json}": "prettier --write",
+    "*.md": [
+      "prettier --write",
+      "markdownlint --fix"
+    ]
   },
   "keywords": [
     "functional",
