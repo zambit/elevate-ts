@@ -7,9 +7,9 @@ on:
     branches: [main, initial]
 
 jobs:
-  lint:
+  Lint:
     runs-on: ubuntu-latest
-    name: Code quality checks
+    name: Lint & Type Check # ESLint, Prettier, TypeScript
 
     steps:
       - uses: actions/checkout@v4

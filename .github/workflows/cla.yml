@@ -16,9 +16,9 @@ permissions:
   pull-requests: read
 
 jobs:
-  cla:
+  CLA:
     runs-on: ubuntu-latest
-    name: Contributor license check
+    name: CLA # Contributor license check
 
     steps:
       - name: Validate contributor acknowledgment
