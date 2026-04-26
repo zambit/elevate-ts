@@ -45,7 +45,6 @@ const result = pipe(
 | Function     | Function composition and utilities; pipe, flow, curry, memoize, once, tap |
 | MaybeAsync   | Lazy async Maybe; rejects or throws become Nothing; never rejects         |
 | EitherAsync  | Lazy async Either; rejects become Left; never throws                      |
-| Audit        | Operation tracking with time-travel replay; configurable capture          |
 
 ## Quick API Reference
 
@@ -145,15 +144,14 @@ fromPromise(p, onError) | tryCatch(f, onError)
 toMaybeAsync(ea)
 ```
 
-### Audit
+## Philosophy
 
-```typescript
-createSession(config?) | withEnabled(b) | withCaptureInputs(b) | withCaptureOutputs(b) | withGenerateId(fn)
-record(op)(monad)(input)(output) | track(op)(monad)(f)(input)
-getLog(s) | getEntries(log) | replay(log)
-entryAt(n) | inputAt(n) | outputAt(n)
-filterByOperation(op) | filterByMonadType(monad)
-```
+- **Point-free**: Functions are composed by shape, not by naming intermediate values
+- **Data-last**: Configuration arguments precede the data being transformed
+- **Pure**: No classes, no mutations, ≤15 lines per function
+- **Cloudflare Workers**: No Node.js built-ins, no DOM APIs
+- **Fantasy Land 5**: All applicable types implement the spec
+- **Zero runtime dependencies**: Ship only pure TypeScript
 
 ## Quick API Reference
 
@@ -269,7 +267,7 @@ toMaybeAsync(ea)
 
 ## Roadmap
 
-See [CHANGELOG](./CHANGELOG.md) and issues for planned features.
+- Audit subsystem with time-travel replay (will use `@paralleldrive/cuid2` for operation-level ID stamping)
 
 ## Contributing
 
