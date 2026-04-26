@@ -33,6 +33,47 @@ describe('MaybeAsync', () => {
     });
   });
 
+  describe('of, nothing', () => {
+    it('of lifts a pure value into Just', async () => {
+      const maa = MaybeAsync.of(42);
+      const result = await maa.run();
+      expect(result).toEqual(Maybe.Just(42));
+    });
+
+    it('of is lazy (computation does not execute until .run)', () => {
+      let executed = false;
+      const maa = MaybeAsync.of(() => {
+        executed = true;
+        return 42;
+      });
+      expect(executed).toBe(false);
+      expect(maa.run).toBeDefined();
+    });
+
+    it('nothing returns Nothing', async () => {
+      const maa = MaybeAsync.nothing<number>();
+      const result = await maa.run();
+      expect(result).toEqual(Maybe.Nothing);
+    });
+
+    it('nothing is lazy', () => {
+      const maa = MaybeAsync.nothing<number>();
+      expect(maa.run).toBeDefined();
+    });
+
+    it('nothing short-circuits chain (callback is not called)', async () => {
+      let called = false;
+      const maa = MaybeAsync.nothing<number>();
+      const chained = MaybeAsync.chain((_) => {
+        called = true;
+        return MaybeAsync.of(42);
+      })(maa);
+      const result = await chained.run();
+      expect(called).toBe(false);
+      expect(result).toEqual(Maybe.Nothing);
+    });
+  });
+
   describe('fromPromise', () => {
     it('fromPromise lifts a resolved Promise', async () => {
       const p = Promise.resolve(42);

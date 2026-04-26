@@ -27,6 +27,21 @@ export const MaybeAsync = <A>(run: () => Promise<Maybe.Maybe<A>>): MaybeAsync<A>
 export const liftMaybe = <A>(ma: Maybe.Maybe<A>): MaybeAsync<A> => MaybeAsync(() => Promise.resolve(ma));
 
 /**
+ * Lift a pure value into MaybeAsync as Just.
+ * Any rejected Promise or thrown error becomes Nothing; never rejects.
+ * @param value - The value to lift.
+ * @returns A MaybeAsync that immediately resolves to Just.
+ */
+export const of = <A>(value: A): MaybeAsync<A> => liftMaybe(Maybe.Just(value));
+
+/**
+ * Lift Nothing into MaybeAsync.
+ * Any rejected Promise or thrown error becomes Nothing; never rejects.
+ * @returns A MaybeAsync that immediately resolves to Nothing.
+ */
+export const nothing = <A>(): MaybeAsync<A> => liftMaybe(Maybe.Nothing);
+
+/**
  * Lift a Promise into MaybeAsync.
  * Any rejected Promise or thrown error becomes Nothing; never rejects.
  * @param p - The Promise to lift.
