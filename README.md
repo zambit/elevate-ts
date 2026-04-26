@@ -46,6 +46,104 @@ const result = pipe(
 | MaybeAsync   | Lazy async Maybe; rejects or throws become Nothing; never rejects         |
 | EitherAsync  | Lazy async Either; rejects become Left; never throws                      |
 
+## Quick API Reference
+
+Browse the [complete API reference →](./docs/API.md) for all functions and types.
+
+### Maybe
+
+```typescript
+Just(value) | Nothing
+map(f) | chain(f) | getOrElse(default)
+fromNullable(a) | filter(predicate) | fold(onNothing, onJust)
+```
+
+### Either
+
+```typescript
+Left(error) | Right(value)
+map(f) | mapLeft(f) | bimap(f, g) | chain(f)
+getOrElse(default) | fold(onLeft, onRight)
+fromPredicate(p, onFalse) | tryCatch(f, onError)
+```
+
+### Validation
+
+```typescript
+Failure(errors) | Success(value);
+ap(vf) | chain(f) | fold(onFailure, onSuccess);
+fromEither(ea) | sequence(validations);
+```
+
+### Reader
+
+```typescript
+Reader(run) | ask() | asks(f) | local(f);
+map(f) | chain(f) | runReader(env);
+```
+
+### State
+
+```typescript
+State(run) | get() | put(s) | modify(f) | gets(f);
+map(f) | chain(f);
+runState(s) | evalState(s) | execState(s);
+```
+
+### Tuple
+
+```typescript
+Tuple(fst, snd);
+fst | snd | mapFst(f) | mapSnd(f) | bimap(f, g) | swap();
+fanout(f, g);
+```
+
+### NonEmptyList
+
+```typescript
+fromArray(arr) | fromArrayUnsafe(arr);
+head(nel) | tail(nel) | last(nel) | init(nel);
+map(f) | chain(f) | concat(nel2);
+```
+
+### List
+
+```typescript
+head(arr) | tail(arr) | take(n) | drop(n);
+partition(p) | groupBy(eq) | sortBy(ord);
+zip(arr2) | zipWith(f) | flatten();
+```
+
+### Function
+
+```typescript
+identity | constant(a) | flip(f)
+pipe(a, f1, f2, ...) | flow(f1, f2, ...)
+curry2(f) | curry3(f) | curry4(f)
+memoize(f) | once(f) | tap(f)
+```
+
+### MaybeAsync
+
+```typescript
+MaybeAsync(run) | liftMaybe(ma)
+of(value) | nothing()
+map(f) | chain(f) | getOrElse(default)
+fromPromise(p) | tryCatch(f)
+fold(onNothing, onJust) | toEitherAsync(onNothing)
+```
+
+### EitherAsync
+
+```typescript
+EitherAsync(run) | liftEither(ea)
+of(value) | right(value) | left(error)
+map(f) | mapLeft(f) | chain(f)
+getOrElse(default) | fold(onLeft, onRight)
+fromPromise(p, onError) | tryCatch(f, onError)
+toMaybeAsync(ea)
+```
+
 ## Philosophy
 
 - **Point-free**: Functions are composed by shape, not by naming intermediate values
