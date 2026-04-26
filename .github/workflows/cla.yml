@@ -29,11 +29,10 @@ jobs:
             const body = pr.body || ''
             const labels = (pr.labels || []).map((label) => label.name)
 
-            const requiredAck =
-              '- [x] I confirm this contribution is mine to submit and is covered by the applicable contributor terms in [CONTRIBUTING.md](../CONTRIBUTING.md)'
+            const claPattern = /^- \[[xX]\] I confirm this contribution is mine to submit/m
 
             const overrideLabels = ['cla-signed', 'cla-exempt']
-            const hasAck = body.includes(requiredAck)
+            const hasAck = claPattern.test(body)
             const matchingOverride = labels.find((label) => overrideLabels.includes(label))
 
             if (hasAck || matchingOverride) {
