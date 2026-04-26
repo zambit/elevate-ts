@@ -140,7 +140,7 @@
       "eslint --fix --max-warnings 0"
     ],
     "tests/**/*.ts": "prettier --write",
-    "*.{tsx,js,jsx,json}": "prettier --write",
+    "*.{ts,tsx,js,jsx,json}": "prettier --write",
     "*.md": [
       "prettier --write",
       "markdownlint --fix --ignore CHANGELOG.md"
