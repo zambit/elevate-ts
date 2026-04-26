@@ -27,6 +27,27 @@ export const EitherAsync = <L, R>(run: () => Promise<Either.Either<L, R>>): Eith
 export const liftEither = <L, R>(ea: Either.Either<L, R>): EitherAsync<L, R> => EitherAsync(() => Promise.resolve(ea));
 
 /**
+ * Lift a pure Right value into EitherAsync.
+ * @param value - The value to lift.
+ * @returns An EitherAsync that immediately resolves to Right.
+ */
+export const of = <R>(value: R): EitherAsync<never, R> => liftEither(Either.Right(value));
+
+/**
+ * Lift a pure Right value into EitherAsync (explicit version).
+ * @param value - The value to lift.
+ * @returns An EitherAsync that immediately resolves to Right.
+ */
+export const right = <R>(value: R): EitherAsync<never, R> => liftEither(Either.Right(value));
+
+/**
+ * Lift a pure Left error into EitherAsync.
+ * @param error - The error to lift.
+ * @returns An EitherAsync that immediately resolves to Left.
+ */
+export const left = <L>(error: L): EitherAsync<L, never> => liftEither(Either.Left(error));
+
+/**
  * Lift a Promise into EitherAsync.
  * Rejected Promises and thrown exceptions become Left; never throws or rejects.
  * @param p - The Promise to lift.
