@@ -80,6 +80,11 @@
       "import": "./dist/esm/EitherAsync.js",
       "require": "./dist/cjs/EitherAsync.js",
       "types": "./dist/esm/EitherAsync.d.ts"
+    },
+    "./Audit": {
+      "import": "./dist/esm/Audit.js",
+      "require": "./dist/cjs/Audit.js",
+      "types": "./dist/esm/Audit.d.ts"
     }
   },
   "scripts": {
