@@ -1,37 +1,50 @@
 # Changelog
 
+## 0.4.2
+
+### Patch Changes (0.4.2)
+
+- ee71685: # CJS Package Marker
+
+  Add dist/cjs/package.json marker to identify CommonJS output. This tells Node.js and Vitest to treat .js files in dist/cjs/ as CommonJS, preventing the spread syntax iterator error across all
+  platforms.
+
 ## 0.4.1
 
-### Patch Changes
+### Patch Changes (0.4.1)
 
-- Fix Audit module import error in Vitest. Add resolve.alias in vitest.config.ts to map @zambit/elevate-ts to src/ for proper test resolution. Fix src/tsconfig.json to produce actual CommonJS output
-  by changing module option from "nodenext" to "CommonJS". Add tests/Audit.package.test.ts to verify package imports work correctly.
+- bac2f49: # Audit Module Import Error Fix
+
+  Fix Audit module import error in Vitest. Add resolve.alias in vitest.config.ts to map @zambit/elevate-ts to src/. Fix src/tsconfig.json to produce actual CommonJS output by changing module option
+  from "nodenext" to "CommonJS". Add tests/Audit.package.test.ts to verify package imports work correctly.
 
 ## 0.4.0
 
-### Minor Changes
+### Minor Changes (0.4.0)
 
 - e0d2243: # HTTP Module
 
   Add HTTP module for CloudFlare Workers and Web Fetch API runtimes with safe JSON parsing, environment variable access, and error-to-HTTP-status mapping.
 
-### Patch Changes
+### Patch Changes (0.4.0)
 
-- Fix ESM build output and add export validation
+- db8781c: # ESM Build Output Fix
+
+  Fix ESM build output and add export validation
 
   Fixed tsconfig.esm.json rootDir to output ESM files to dist/esm/ instead of dist/esm/src/, correcting the 0.2.0+ npm packaging bug. Added check:exports validation script that verifies all declared
   exports in package.json exist on disk before publishing, preventing future broken releases.
 
 ## 0.3.0
 
-### Added
+### Added (0.3.0)
 
 **HTTP** — CloudFlare Workers and Web Fetch API helpers. `jsonResponse`, `parseJSON`, `askEnv`, `requireEnv`, `withStatusCode`, `handleEither`, `handleEitherAsync`. Types: `SyncHTTPHandler`,
 `HTTPHandler`, `StatusMap`. See [HTTP guide](docs/HTTP.md).
 
 ## 0.2.0
 
-### Added
+### Added (0.2.0)
 
 **Audit** — Operation tracking with time-travel replay. `createSession`, `withEnabled`, `withCaptureInputs`, `withCaptureOutputs`, `withGenerateId`, `record`, `track`, `getLog`, `getEntries`,
 `entryAt`, `inputAt`, `outputAt`, `replay`, `filterByOperation`, `filterByMonadType`. Types: `AuditConfig`, `AuditEntry`, `AuditLog`, `AuditSession`. See [Audit guide](docs/AUDIT.md).
@@ -51,7 +64,7 @@
 
 ## [0.1.0] - 2025-04-03
 
-### Added
+### Added (0.1.0)
 
 **Maybe** — Optional values. `Just`, `Nothing`, `isJust`, `isNothing`, `fromNullable`, `fromPredicate`, `toNullable`, `toArray`, `map`, `ap`, `chain`, `chainNullable`, `getOrElse`, `getOrElseL`,
 `alt`, `altL`, `filter`, `fold`, `catMaybes`, `mapMaybe`, `sequence`, `traverse`, `toEither`.
