@@ -9,13 +9,13 @@ export default defineConfig({
     alias: [
       {
         find: /^@zambit\/elevate-ts\/(.+)$/,
-        replacement: resolve(__dirname, 'src/$1.ts'),
+        replacement: resolve(__dirname, 'src/$1.ts')
       },
       {
         find: '@zambit/elevate-ts',
-        replacement: resolve(__dirname, 'src/index.ts'),
-      },
-    ],
+        replacement: resolve(__dirname, 'src/index.ts')
+      }
+    ]
   },
   test: {
     include: ['tests/**/*.test.ts'],
