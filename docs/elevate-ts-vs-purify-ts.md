@@ -279,6 +279,37 @@ const processOrder = (orderId: string): string =>
 - You're optimizing for minimal bundle size
 - Your team is learning functional programming (point-free is easier to grok)
 
+## Async Type Naming: `Task` vs `EitherAsync`
+
+If you're coming from fp-ts or purify-ts, the failable async monad has a different name in elevate-ts. The semantics are the same — lazy, exception-safe, holds either a success or a failure — only the
+name differs.
+
+| Concept                   | fp-ts              | purify-ts                    | elevate-ts             |
+| ------------------------- | ------------------ | ---------------------------- | ---------------------- |
+| Async, may fail (lazy)    | `TaskEither<E, A>` | `Task<E, A>` / `EitherAsync` | `EitherAsync<L, R>`    |
+| Async, cannot fail (lazy) | `Task<A>`          | (none — use `Promise`)       | (none — use `Promise`) |
+| Sync, may fail            | `Either<E, A>`     | `Either<L, R>`               | `Either<L, R>`         |
+| Optional value            | `Option<A>`        | `Maybe<A>`                   | `Maybe<A>`             |
+
+elevate-ts deliberately omits a no-error-track `Task<A>`: native `Promise<A>` already represents "async that always succeeds," and `EitherAsync<never, A>` is available if you need monadic ops on a
+non-failable async value.
+
+```typescript
+// purify-ts
+import { EitherAsync } from 'purify-ts/EitherAsync';
+const fetchUser = (id: string): EitherAsync<Error, User> =>
+  EitherAsync(({ liftEither, fromPromise }) => /* ... */);
+
+// elevate-ts
+import * as EitherAsync from 'elevate-ts/EitherAsync';
+import { pipe } from 'elevate-ts/Function';
+const fetchUser = (id: string): EitherAsync.EitherAsync<Error, User> =>
+  pipe(
+    EitherAsync.tryCatch(() => fetch(`/users/${id}`), (e) => e as Error),
+    EitherAsync.chain(/* ... */)
+  );
+```
+
 ## Migration Guide: purify-ts → elevate-ts
 
 ### 1. Update Imports

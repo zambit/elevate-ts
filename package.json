@@ -81,6 +81,11 @@
       "require": "./dist/cjs/EitherAsync.js",
       "types": "./dist/esm/EitherAsync.d.ts"
     },
+    "./ReaderEitherAsync": {
+      "import": "./dist/esm/ReaderEitherAsync.js",
+      "require": "./dist/cjs/ReaderEitherAsync.js",
+      "types": "./dist/esm/ReaderEitherAsync.d.ts"
+    },
     "./Audit": {
       "import": "./dist/esm/Audit.js",
       "require": "./dist/cjs/Audit.js",

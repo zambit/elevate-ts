@@ -457,6 +457,67 @@ Result with error branch wrapped in a lazy Promise. Rejections become `Left`; ne
 
 ---
 
+## ReaderEitherAsync — Lazy Async Either with Dependency Injection
+
+Composes `Reader<R, A>` with `EitherAsync<L, A>`: a lazy `(env: R) => Promise<Either<L, A>>`. Use it for asynchronous, failable computations that need a threaded environment (clients, config,
+loggers). Equivalent in role to fp-ts `ReaderTaskEither`.
+
+### Types
+
+- **`ReaderEitherAsync<R, L, A>`** — Lazy wrapper around `(env: R) => Promise<Either<L, A>>`
+
+### Constructors
+
+- **`ReaderEitherAsync(run: (env: R) => Promise<Either<L, A>>): ReaderEitherAsync<R, L, A>`** — Raw constructor
+- **`of(value: A): ReaderEitherAsync<unknown, never, A>`** — Lift a pure Right, ignoring env
+- **`right(value: A): ReaderEitherAsync<unknown, never, A>`** — Alias for `of`
+- **`left(error: L): ReaderEitherAsync<unknown, L, never>`** — Lift a pure Left, ignoring env
+
+### Lifts
+
+- **`liftEither(ea: Either<L, A>): ReaderEitherAsync<unknown, L, A>`** — Lift a sync Either
+- **`liftEitherAsync(ea: EitherAsync<L, A>): ReaderEitherAsync<unknown, L, A>`** — Lift an EitherAsync
+- **`liftReader(r: Reader<R, A>): ReaderEitherAsync<R, never, A>`** — Lift a Reader as a Right
+
+### Promise Lifting
+
+- **`fromPromise(f: (env: R) => Promise<A>, onError: (e: unknown) => L): ReaderEitherAsync<R, L, A>`** — Env-aware Promise lift
+- **`tryCatch(f: (env: R) => Promise<A>, onError: (e: unknown) => L): ReaderEitherAsync<R, L, A>`** — Env-aware async wrapper that catches sync throws too
+
+### Reader Operations
+
+- **`ask<R>(): ReaderEitherAsync<R, never, R>`** — Get the env as a Right
+- **`asks(f: (env: R) => A): ReaderEitherAsync<R, never, A>`** — Sync-transform the env
+- **`asksEither(f: (env: R) => Either<L, A>): ReaderEitherAsync<R, L, A>`** — Sync env → Either
+- **`asksEitherAsync(f: (env: R) => EitherAsync<L, A>): ReaderEitherAsync<R, L, A>`** — Env → EitherAsync
+- **`local(f: (env: R) => R): (rea: ReaderEitherAsync<R, L, A>) => ReaderEitherAsync<R, L, A>`** — Modify env for a sub-computation
+- **`provide(env: R): (rea: ReaderEitherAsync<R, L, A>) => EitherAsync<L, A>`** — Apply the env, collapsing to EitherAsync
+
+### Functor / Bifunctor / Monad
+
+- **`map(f: (a: A) => B): (rea) => ReaderEitherAsync<R, L, B>`** — Functor map over Right
+- **`mapLeft(f: (l: L) => L2): (rea) => ReaderEitherAsync<R, L2, A>`** — Map over Left
+- **`bimap(f, g): (rea) => ReaderEitherAsync<R, L2, B>`** — Bifunctor map
+- **`chain(f: (a: A) => ReaderEitherAsync<R, L, B>): (rea) => ReaderEitherAsync<R, L, B>`** — Monadic bind
+- **`chainLeft(f: (l: L) => ReaderEitherAsync<R, L2, A>): (rea) => ReaderEitherAsync<R, L2, A>`** — Chain over Left (recovery)
+- **`ap(ref: ReaderEitherAsync<R, L, (a: A) => B>): (rea) => ReaderEitherAsync<R, L, B>`** — Applicative apply
+
+### Extraction & Analysis
+
+- **`runReaderEitherAsync(env: R): (rea: ReaderEitherAsync<R, L, A>) => Promise<Either<L, A>>`** — Primary runner
+- **`getOrElse(default: A): (rea) => (env: R) => Promise<A>`** — Extract Right or default
+- **`fold(onLeft, onRight): (rea) => (env: R) => Promise<B>`** — Case analysis
+
+### Array Operations
+
+- **`all(reas: readonly ReaderEitherAsync<R, L, A>[]): ReaderEitherAsync<R, L, readonly A[]>`** — All-or-Left, runs in parallel sharing the env
+
+### Execution
+
+- **`run(env: R): Promise<Either<L, A>>`** — Execute with the supplied env (property on the type)
+
+---
+
 ## HTTP — CloudFlare Workers & Web Fetch API Helpers
 
 Utilities for building HTTP handlers with Either/EitherAsync, managing environment variables via Reader, and mapping domain errors to HTTP status codes.
