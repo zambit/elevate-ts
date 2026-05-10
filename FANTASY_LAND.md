@@ -54,8 +54,33 @@ Rather than rename these to `_flMap` (which breaks the export), we use `eslint-d
 - ✅ Public exports (required for library consumers)
 - ✅ Clear intent (the comments document why they exist)
 
+## Implementation note: prototype isolation
+
+elevate-ts attaches Fantasy Land methods to the prototype of values returned by constructors (`Right`, `Just`, `Reader`, etc.). To do so without polluting the global `Object.prototype`, each module
+owns a private prototype object and constructors return values via `Object.assign(Object.create(_proto), ...)`.
+
+```ts
+// [YES] CORRECT — isolated proto
+const _rightProto: Record<string, unknown> = {};
+export const Right = <R>(right: R): Right<R> => Object.assign(Object.create(_rightProto), { tag: 'Right' as const, right });
+_rightProto['fantasy-land/map'] = function (f) {
+  /* ... */
+};
+
+// [NO] DO NOT WRITE THIS — pollutes Object.prototype globally
+export const Right = <R>(right: R): Right<R> => ({ tag: 'Right', right });
+const rightProto = Object.getPrototypeOf(Right(0)); // === Object.prototype
+rightProto['fantasy-land/map'] = function (f) {
+  /* ... */
+};
+```
+
+> **[NOTE]** Do not "simplify" this code without reading [docs/PROTOTYPE_ISOLATION.md](./docs/PROTOTYPE_ISOLATION.md) first. The obvious-looking cleanup (`Object.getPrototypeOf(literal)`) reintroduces
+> a load-bearing bug that crashed vitest at module-load time. There is a regression test in each module's test file that catches this; do not delete or weaken it.
+
 ## References
 
 - [Fantasy Land Specification](https://fantasylandspec.org/)
 - [Fantasy Land spec on GitHub](https://github.com/fantasyland/fantasy-land)
 - [elevate-ts implementation](./src/Either.ts) — search for "Fantasy Land symbols"
+- [docs/PROTOTYPE_ISOLATION.md](./docs/PROTOTYPE_ISOLATION.md) — full design rationale

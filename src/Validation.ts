@@ -111,14 +111,14 @@ export const traverse =
   (as) =>
     sequence(as.map(f));
 
-// Fantasy Land symbols
-// Note: FL methods are excluded to work around vitest coverage serialization issues.
-// The core functionality is complete and all point-free functions work correctly.
-// TODO: Re-enable Fantasy Land methods when vitest issue is resolved.
+// Fantasy Land symbols — deferred. See docs/PROTOTYPE_ISOLATION.md for context.
+// To re-enable, follow the isolated-proto pattern used in Either.ts / Maybe.ts:
+// add module-private `_successProto` / `_failureProto` objects, return values
+// via `Object.assign(Object.create(_proto), { ... })`, and patch the private
+// protos. Do NOT use `Object.getPrototypeOf(literal)` — that pollutes the
+// global Object.prototype and breaks vitest at module-load time.
 //
-// Object.defineProperty(Success, 'fantasy-land/of', { value: Success })
-// Object.defineProperty(Failure, 'fantasy-land/zero', { value: Failure([]) })
-//
-// const successProto = Object.getPrototypeOf(Success(0))
-// successProto['fantasy-land/map'] = ...
-// etc.
+// Validation needs a design decision before exposing `ap` on the prototype:
+// the conventional FL instance for Validation is an *accumulating* applicative
+// (combines Failure errors via Semigroup), distinct from `Either`'s
+// short-circuiting ap. Verify the namespace `ap` matches that contract first.
