@@ -154,11 +154,13 @@ export const max =
     return result;
   };
 
-// Fantasy Land symbols
-// Note: FL methods excluded to work around vitest coverage serialization issues.
-// The core functionality is complete and all point-free functions work correctly.
-// TODO: Re-enable Fantasy Land methods when vitest issue is resolved.
+// Fantasy Land symbols — deferred. See docs/PROTOTYPE_ISOLATION.md for context.
+// NonEmptyList is currently branded as a readonly array (see `unsafeBrand`)
+// and has no per-instance prototype to attach methods to without changing the
+// representation. Re-enabling FL conformance requires either (a) wrapping NEL
+// values in an object with a private prototype (the isolated-proto pattern
+// used in Either.ts / Maybe.ts), or (b) patching Array.prototype (rejected:
+// pollutes the global Array prototype).
 //
-// const nelProto = Object.getPrototypeOf(unsafeBrand([0]))
-// nelProto['fantasy-land/map'] = ...
-// etc.
+// `traverse` is part of standard NEL conformance and is non-trivial to expose
+// safely; map / ap / chain / reduce are mechanical once the wrapping is decided.

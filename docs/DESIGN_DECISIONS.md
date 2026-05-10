@@ -39,6 +39,17 @@ for environment-specific bugs, simplifies testing, and enables code sharing acro
 **Why:** Interoperability with other FL-compliant libraries. Users can mix elevate-ts with other FP ecosystems (Ramda, fp-ts, etc.) without adapter code. Long-term: elevate-ts becomes a building block
 in larger FP ecosystems rather than an isolated library.
 
+### Prototype Isolation for Fantasy Land Methods
+
+**Decision:** Each module that exposes Fantasy Land methods (Either, Maybe, Reader, Tuple, State) defines a private `_*Proto` object at module scope. Constructors return values via
+`Object.assign(Object.create(_proto), { ... })` so the value's prototype chain is rooted at the private object, never at the global `Object.prototype`.
+
+**Why:** The natural-looking pattern — `Object.getPrototypeOf(Right(0))` to find the prototype, then patch it with fantasy-land methods — pollutes the global `Object.prototype` with enumerable
+string-keyed methods, because the constructor returns a plain object literal whose prototype _is_ `Object.prototype`. That breaks downstream tooling: in particular, vitest fails at module-load time
+with a misleading "Spread syntax requires ...iterable[Symbol.iterator] to be a function" error and no stack. Long-term: this is a load-bearing constraint — anyone "simplifying" the code without
+reading the rationale will reintroduce the bug. Full alternatives considered, JS prototype mechanics, and a regression test specification are in
+[docs/PROTOTYPE_ISOLATION.md](./PROTOTYPE_ISOLATION.md).
+
 ### Zero Runtime Dependencies
 
 **Decision:** Library ships with zero runtime dependencies. All code is pure TypeScript with no external imports.
