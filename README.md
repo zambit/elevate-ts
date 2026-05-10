@@ -1,7 +1,7 @@
 # elevate-ts
 
-[![Coverage](https://img.shields.io/badge/coverage-95.15%25-brightgreen)](./coverage/index.html)
-[![npm](https://img.shields.io/badge/npm-0.3.0-lightgrey)](https://npmjs.com/package/@zambit/elevate-ts)
+[![Coverage](https://img.shields.io/badge/coverage-95.54%25-brightgreen)](./coverage/index.html)
+[![npm](https://img.shields.io/badge/npm-0.5.0-lightgrey)](https://npmjs.com/package/@zambit/elevate-ts)
 [![License: AGPL%20v3%2B](https://img.shields.io/badge/license-AGPL%20v3%2B-green.svg)](https://github.com/zambit/elevate-ts/blob/main/LICENSE)
 
 Point-free, data-last functional programming for TypeScript. Fantasy Land 5 compliant. Zero dependencies. Cloudflare Workers ready.
@@ -44,21 +44,22 @@ const result2 = pipe(
 
 ## Modules
 
-| Module       | Description                                                               |
-| ------------ | ------------------------------------------------------------------------- |
-| Maybe        | Optional values; Functor, Applicative, Monad, Alt, Filter                 |
-| Either       | Values with a Left error branch; Bifunctor, Monad, Alt                    |
-| Validation   | Functor for collecting all errors during applicative (not short-circuit)  |
-| Reader       | Dependency injection / environment access; Monad                          |
-| State        | Pure stateful computation; track state through a sequence of operations   |
-| Tuple        | Immutable 2-tuple; Bifunctor, Monoid                                      |
-| NonEmptyList | Guaranteed-nonempty array; Functor, Applicative, Monad, Monoid            |
-| List         | Utilities over plain readonly arrays; map, filter, partition, zip, etc.   |
-| Function     | Function composition and utilities; pipe, flow, curry, memoize, once, tap |
-| MaybeAsync   | Lazy async Maybe; rejects or throws become Nothing; never rejects         |
-| EitherAsync  | Lazy async Either; rejects become Left; never throws                      |
-| Audit        | Operation tracking with time-travel replay; configurable ID generation    |
-| HTTP         | CloudFlare Workers & Web Fetch API helpers; safe JSON, env, error mapping |
+| Module            | Description                                                                      |
+| ----------------- | -------------------------------------------------------------------------------- |
+| Maybe             | Optional values; Functor, Applicative, Monad, Alt, Filter                        |
+| Either            | Values with a Left error branch; Bifunctor, Monad, Alt                           |
+| Validation        | Functor for collecting all errors during applicative (not short-circuit)         |
+| Reader            | Dependency injection / environment access; Functor, Applicative, Monad           |
+| State             | Pure stateful computation; Functor, Applicative, Monad                           |
+| Tuple             | Immutable 2-tuple; Functor, Bifunctor                                            |
+| NonEmptyList      | Guaranteed-nonempty array; Functor, Applicative, Monad, Monoid                   |
+| List              | Utilities over plain readonly arrays; map, filter, partition, zip, etc.          |
+| Function          | Function composition and utilities; pipe, flow, curry, memoize, once, tap        |
+| MaybeAsync        | Lazy async Maybe; rejects or throws become Nothing; never rejects                |
+| EitherAsync       | Lazy async Either; rejects become Left; never throws                             |
+| ReaderEitherAsync | Lazy async Either with dependency injection; `(env: R) => Promise<Either<L, A>>` |
+| Audit             | Operation tracking with time-travel replay; configurable ID generation           |
+| HTTP              | CloudFlare Workers & Web Fetch API helpers; safe JSON, env, error mapping        |
 
 ## Quick API Reference
 
@@ -156,6 +157,18 @@ map(f) | mapLeft(f) | chain(f)
 getOrElse(default) | fold(onLeft, onRight)
 fromPromise(p, onError) | tryCatch(f, onError)
 toMaybeAsync(ea)
+```
+
+### ReaderEitherAsync
+
+```typescript
+ReaderEitherAsync(run) | of(value) | right(value) | left(error)
+liftEither(ea) | liftEitherAsync(ea) | liftReader(r)
+ask() | asks(f) | asksEither(f) | asksEitherAsync(f) | local(f) | provide(env)
+map(f) | mapLeft(f) | bimap(f, g) | chain(f) | chainLeft(f) | ap(rf)
+fromPromise(p, onError) | tryCatch(f, onError)
+runReaderEitherAsync(env) | getOrElse(default) | fold(onLeft, onRight)
+all(reas)
 ```
 
 ### Audit
