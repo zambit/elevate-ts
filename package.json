@@ -1,6 +1,6 @@
 {
   "name": "@zambit/elevate-ts",
-  "version": "0.4.2",
+  "version": "0.5.0",
   "description": "Functional programming library for TypeScript. Available under AGPL-3.0 or Commercial License.",
   "license": "AGPL-3.0-or-later",
   "repository": {

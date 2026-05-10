@@ -1,5 +1,47 @@
 # Changelog
 
+## 0.5.0
+
+### Minor Changes
+
+- Fantasy Land conformance for Reader, Tuple, and State
+
+  `Reader`, `Tuple`, and `State` now expose Fantasy Land methods on the prototype of constructed values, joining `Either` and `Maybe`:
+  - **Reader:** Functor (`fantasy-land/map`), Apply (`fantasy-land/ap`), Applicative (`fantasy-land/of` on the constructor), Chain (`fantasy-land/chain`), Monad.
+  - **Tuple:** Functor (`fantasy-land/map` over `snd`, by convention), Bifunctor (`fantasy-land/bimap`).
+  - **State:** Functor, Apply, Applicative, Chain, Monad.
+
+  Methods delegate to the existing namespace functions (`Reader.map`, `State.chain`, etc.), so behavior is identical between the namespace style (`Reader.map(f)(r)`) and the Fantasy Land style
+  (`r['fantasy-land/map'](f)`).
+
+  These modules previously had their fantasy-land blocks commented out as "TODO: re-enable when vitest issue is resolved" — that issue was the `Object.prototype` pollution fixed in the patch alongside
+  this release. The pattern used here (private `_*Proto` objects, never patching the global prototype) is documented in [docs/PROTOTYPE_ISOLATION.md](./docs/PROTOTYPE_ISOLATION.md).
+
+  `Validation` and `NonEmptyList` remain deferred — each has a design decision still pending (accumulating `ap` for Validation; wrapping representation for NonEmptyList).
+
+- 7f40054: # ReaderEitherAsync Module
+
+  Add `ReaderEitherAsync<R, L, A>` — a lazy, failable async monad with dependency injection. Composes `Reader` (env-threading) with `EitherAsync` (failable async) into a single type
+  `(env: R) => Promise<Either<L, A>>`. Equivalent in role to fp-ts `ReaderTaskEither`. Use it for asynchronous handlers that need a threaded environment (clients, config, loggers) without manual env
+  plumbing through a chain of `EitherAsync` calls.
+
+  Also clarifies in the project documentation that elevate-ts `EitherAsync<L, R>` is the equivalent of what fp-ts and purify-ts call `Task<E, A>` / `TaskEither<E, A>`.
+
+### Patch Changes
+
+- Fix: Object.prototype pollution from Fantasy Land patching
+
+  `Either.ts` and `Maybe.ts` previously attached Fantasy Land methods (`fantasy-land/map`, etc.) to the prototype discovered via `Object.getPrototypeOf(Right(0))`. Because `Right(0)` returned a plain
+  object literal, that prototype was the global `Object.prototype`, so the assignments patched it with enumerable string-keyed methods, polluting every plain object in the runtime. The visible symptom
+  was a misleading vitest failure at module-load time — `TypeError: Spread syntax requires ...iterable[Symbol.iterator] to be a function` — with no stack trace.
+
+  Each module now defines a private prototype object (`_leftProto`, `_rightProto`, `_justProto`, `_nothingProto`) and constructors return values via
+  `Object.assign(Object.create(_proto), { tag: 'X' as const, … })`. Fantasy Land methods are patched onto the private prototypes, never reaching `Object.prototype`. Public API and Fantasy Land
+  semantics are unchanged.
+
+  Adds regression tests asserting `Object.prototype` remains free of `fantasy-land/*` keys after construction. See [docs/PROTOTYPE_ISOLATION.md](./docs/PROTOTYPE_ISOLATION.md) for the full rationale,
+  JS prototype mechanics, alternatives considered, and when-to-revisit triggers.
+
 ## 0.4.2
 
 ### Patch Changes (0.4.2)
