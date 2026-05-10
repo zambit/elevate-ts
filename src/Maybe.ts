@@ -9,11 +9,17 @@ export type Nothing = { readonly tag: 'Nothing' };
 /** Optional value: Just<A> (present) or Nothing (absent). */
 export type Maybe<A> = Just<A> | Nothing;
 
+// Private prototypes for Fantasy Land methods. Constructors return values
+// whose prototype chain is rooted at these objects, NOT at Object.prototype.
+// See docs/PROTOTYPE_ISOLATION.md for why this matters.
+const _justProto: Record<string, unknown> = {};
+const _nothingProto: Record<string, unknown> = {};
+
 /** Create a Just value. */
-export const Just = <A>(value: A): Just<A> => ({ tag: 'Just', value });
+export const Just = <A>(value: A): Just<A> => Object.assign(Object.create(_justProto), { tag: 'Just' as const, value });
 
 /** The Nothing singleton. */
-export const Nothing: Nothing = { tag: 'Nothing' };
+export const Nothing: Nothing = Object.assign(Object.create(_nothingProto), { tag: 'Nothing' as const });
 
 /** Test if a Maybe is Just. */
 export const isJust = <A>(ma: Maybe<A>): ma is Just<A> => ma.tag === 'Just';
@@ -144,52 +150,50 @@ const flEquals =
 Object.defineProperty(Just, 'fantasy-land/of', { value: Just });
 Object.defineProperty(Nothing, 'fantasy-land/zero', { value: Nothing });
 
-const justProto = Object.getPrototypeOf(Just(0));
-justProto['fantasy-land/map'] = function <A, B>(this: Just<A>, f: (a: A) => B) {
+_justProto['fantasy-land/map'] = function <A, B>(this: Just<A>, f: (a: A) => B) {
   return Just(f(this.value));
 };
-justProto['fantasy-land/ap'] = function <A, B>(this: Just<(a: A) => B>, ma: Maybe<A>) {
+_justProto['fantasy-land/ap'] = function <A, B>(this: Just<(a: A) => B>, ma: Maybe<A>) {
   return ap(this)(ma);
 };
-justProto['fantasy-land/chain'] = function <A, B>(this: Just<A>, f: (a: A) => Maybe<B>) {
+_justProto['fantasy-land/chain'] = function <A, B>(this: Just<A>, f: (a: A) => Maybe<B>) {
   return f(this.value);
 };
-justProto['fantasy-land/alt'] = function <A>(this: Just<A>, _malt: Maybe<A>) {
+_justProto['fantasy-land/alt'] = function <A>(this: Just<A>, _malt: Maybe<A>) {
   return this;
 };
-justProto['fantasy-land/filter'] = function <A>(this: Just<A>, predicate: (a: A) => boolean) {
+_justProto['fantasy-land/filter'] = function <A>(this: Just<A>, predicate: (a: A) => boolean) {
   return predicate(this.value) ? this : Nothing;
 };
-justProto['fantasy-land/reduce'] = function <A, B>(this: Just<A>, f: (b: B, a: A) => B, b: B) {
+_justProto['fantasy-land/reduce'] = function <A, B>(this: Just<A>, f: (b: B, a: A) => B, b: B) {
   return f(b, this.value);
 };
-justProto['fantasy-land/equals'] = function <A>(this: Just<A>, other: Maybe<A>) {
+_justProto['fantasy-land/equals'] = function <A>(this: Just<A>, other: Maybe<A>) {
   return other.tag === 'Just' && this.value === other.value;
 };
 
-const nothingProto = Object.getPrototypeOf(Nothing);
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-nothingProto['fantasy-land/map'] = function <A, B>(this: Nothing, f: (a: A) => B) {
+_nothingProto['fantasy-land/map'] = function <A, B>(this: Nothing, f: (a: A) => B) {
   return Nothing;
 };
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-nothingProto['fantasy-land/ap'] = function <_A, B>(this: Nothing, _ma: Maybe<_A>) {
+_nothingProto['fantasy-land/ap'] = function <_A, B>(this: Nothing, _ma: Maybe<_A>) {
   return Nothing;
 };
-nothingProto['fantasy-land/chain'] = function <A, B>(this: Nothing, _f: (a: A) => Maybe<B>) {
+_nothingProto['fantasy-land/chain'] = function <A, B>(this: Nothing, _f: (a: A) => Maybe<B>) {
   return Nothing;
 };
-nothingProto['fantasy-land/alt'] = function <A>(this: Nothing, malt: Maybe<A>) {
+_nothingProto['fantasy-land/alt'] = function <A>(this: Nothing, malt: Maybe<A>) {
   return malt;
 };
-nothingProto['fantasy-land/filter'] = function <A>(this: Nothing, _predicate: (a: A) => boolean) {
+_nothingProto['fantasy-land/filter'] = function <A>(this: Nothing, _predicate: (a: A) => boolean) {
   return Nothing;
 };
-nothingProto['fantasy-land/reduce'] = function <A, B>(this: Nothing, f: (b: B, a: A) => B, b: B) {
+_nothingProto['fantasy-land/reduce'] = function <A, B>(this: Nothing, f: (b: B, a: A) => B, b: B) {
   return b;
 };
 // istanbul ignore next
-nothingProto['fantasy-land/equals'] = function <A>(this: Nothing, other: Maybe<A>) {
+_nothingProto['fantasy-land/equals'] = function <A>(this: Nothing, other: Maybe<A>) {
   return other.tag === 'Nothing';
 };
 

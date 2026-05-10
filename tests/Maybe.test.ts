@@ -415,4 +415,24 @@ describe('Maybe', () => {
       }
     });
   });
+
+  describe('prototype isolation (regression guard)', () => {
+    // Regression guard for the pre-2026-05 antipattern where the fantasy-land
+    // methods were patched onto Object.prototype globally. See
+    // docs/PROTOTYPE_ISOLATION.md.
+    it('does not pollute Object.prototype with fantasy-land methods', () => {
+      Just(1);
+      void Nothing;
+      const objectProtoKeys = Object.keys(Object.prototype);
+      expect(objectProtoKeys).not.toContain('fantasy-land/map');
+      expect(objectProtoKeys).not.toContain('fantasy-land/chain');
+      expect(({} as Record<string, unknown>)['fantasy-land/map']).toBeUndefined();
+    });
+
+    it('Just exposes fantasy-land/map via the prototype', () => {
+      const j = Just(5) as unknown as Record<string, (f: (n: number) => number) => unknown>;
+      expect(typeof j['fantasy-land/map']).toBe('function');
+      expect(j['fantasy-land/map']((n) => n + 1)).toEqual(Just(6));
+    });
+  });
 });

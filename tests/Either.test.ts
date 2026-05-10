@@ -499,5 +499,23 @@ describe('Either', () => {
       const mapped = map((x: number) => x + 1)(l);
       expect(mapped).toEqual(Left('error'));
     });
+
+    // Regression guard for the pre-2026-05 antipattern where the fantasy-land
+    // methods were patched onto Object.prototype globally. See
+    // docs/PROTOTYPE_ISOLATION.md.
+    it('does not pollute Object.prototype with fantasy-land methods', () => {
+      Right(1);
+      Left('e');
+      const objectProtoKeys = Object.keys(Object.prototype);
+      expect(objectProtoKeys).not.toContain('fantasy-land/map');
+      expect(objectProtoKeys).not.toContain('fantasy-land/chain');
+      expect(({} as Record<string, unknown>)['fantasy-land/map']).toBeUndefined();
+    });
+
+    it('Right exposes fantasy-land/map via the prototype', () => {
+      const r = Right(5) as unknown as Record<string, (f: (n: number) => number) => unknown>;
+      expect(typeof r['fantasy-land/map']).toBe('function');
+      expect(r['fantasy-land/map']((n) => n + 1)).toEqual(Right(6));
+    });
   });
 });
