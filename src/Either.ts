@@ -9,11 +9,17 @@ export type Right<R> = { readonly tag: 'Right'; readonly right: R };
 /** Result type: Left<L> (error) or Right<R> (success). */
 export type Either<L, R> = Left<L> | Right<R>;
 
+// Private prototypes for Fantasy Land methods. Constructors return values
+// whose prototype chain is rooted at these objects, NOT at Object.prototype.
+// See docs/PROTOTYPE_ISOLATION.md for why this matters.
+const _leftProto: Record<string, unknown> = {};
+const _rightProto: Record<string, unknown> = {};
+
 /** Create a Left value. */
-export const Left = <L>(left: L): Left<L> => ({ tag: 'Left', left });
+export const Left = <L>(left: L): Left<L> => Object.assign(Object.create(_leftProto), { tag: 'Left' as const, left });
 
 /** Create a Right value. */
-export const Right = <R>(right: R): Right<R> => ({ tag: 'Right', right });
+export const Right = <R>(right: R): Right<R> => Object.assign(Object.create(_rightProto), { tag: 'Right' as const, right });
 
 /** Test if Either is Left. */
 export const isLeft = <L, R>(ea: Either<L, R>): ea is Left<L> => ea.tag === 'Left';
@@ -173,53 +179,51 @@ const flAlt =
 
 Object.defineProperty(Right, 'fantasy-land/of', { value: Right });
 
-const rightProto = Object.getPrototypeOf(Right(0));
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-rightProto['fantasy-land/map'] = function <L, A, B>(this: Right<A>, f: (a: A) => B) {
+_rightProto['fantasy-land/map'] = function <L, A, B>(this: Right<A>, f: (a: A) => B) {
   return Right(f(this.right));
 };
-rightProto['fantasy-land/ap'] = function <L, A, B>(this: Right<(a: A) => B>, ea: Either<L, A>) {
+_rightProto['fantasy-land/ap'] = function <L, A, B>(this: Right<(a: A) => B>, ea: Either<L, A>) {
   return ap(this)(ea);
 };
-rightProto['fantasy-land/chain'] = function <L, A, B>(this: Right<A>, f: (a: A) => Either<L, B>) {
+_rightProto['fantasy-land/chain'] = function <L, A, B>(this: Right<A>, f: (a: A) => Either<L, B>) {
   return f(this.right);
 };
-rightProto['fantasy-land/bimap'] = function <L, L2, A, B>(this: Right<A>, f: (l: L) => L2, g: (a: A) => B) {
+_rightProto['fantasy-land/bimap'] = function <L, L2, A, B>(this: Right<A>, f: (l: L) => L2, g: (a: A) => B) {
   return Right(g(this.right));
 };
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-rightProto['fantasy-land/reduce'] = function <L, A, B>(this: Right<A>, f: (b: B, a: A) => B, b: B) {
+_rightProto['fantasy-land/reduce'] = function <L, A, B>(this: Right<A>, f: (b: B, a: A) => B, b: B) {
   return f(b, this.right);
 };
-rightProto['fantasy-land/equals'] = function <L, A>(this: Right<A>, other: Either<L, A>) {
+_rightProto['fantasy-land/equals'] = function <L, A>(this: Right<A>, other: Either<L, A>) {
   return other.tag === 'Right' && this.right === other.right;
 };
-rightProto['fantasy-land/alt'] = function <L, R>(this: Right<R>, _ealt: Either<L, R>) {
+_rightProto['fantasy-land/alt'] = function <L, R>(this: Right<R>, _ealt: Either<L, R>) {
   return this;
 };
 
-const leftProto = Object.getPrototypeOf(Left(0));
-leftProto['fantasy-land/map'] = function <L, A, B>(this: Left<L>, _f: (a: A) => B) {
+_leftProto['fantasy-land/map'] = function <L, A, B>(this: Left<L>, _f: (a: A) => B) {
   return this;
 };
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-leftProto['fantasy-land/ap'] = function <L, A, _B>(this: Left<L>, _ea: Either<L, A>) {
+_leftProto['fantasy-land/ap'] = function <L, A, _B>(this: Left<L>, _ea: Either<L, A>) {
   return this;
 };
-leftProto['fantasy-land/chain'] = function <L, A, B>(this: Left<L>, _f: (a: A) => Either<L, B>) {
+_leftProto['fantasy-land/chain'] = function <L, A, B>(this: Left<L>, _f: (a: A) => Either<L, B>) {
   return this;
 };
-leftProto['fantasy-land/bimap'] = function <L, L2, A, B>(this: Left<L>, f: (l: L) => L2, _g: (a: A) => B) {
+_leftProto['fantasy-land/bimap'] = function <L, L2, A, B>(this: Left<L>, f: (l: L) => L2, _g: (a: A) => B) {
   return Left(f(this.left));
 };
-leftProto['fantasy-land/reduce'] = function <L, A, B>(this: Left<L>, f: (b: B, a: A) => B, b: B) {
+_leftProto['fantasy-land/reduce'] = function <L, A, B>(this: Left<L>, f: (b: B, a: A) => B, b: B) {
   return b;
 };
 // istanbul ignore next
-leftProto['fantasy-land/equals'] = function <L, R>(this: Left<L>, other: Either<L, R>) {
+_leftProto['fantasy-land/equals'] = function <L, R>(this: Left<L>, other: Either<L, R>) {
   return other.tag === 'Left' && this.left === other.left;
 };
 // istanbul ignore next
-leftProto['fantasy-land/alt'] = function <L, R>(this: Left<L>, ealt: Either<L, R>) {
+_leftProto['fantasy-land/alt'] = function <L, R>(this: Left<L>, ealt: Either<L, R>) {
   return ealt;
 };
