@@ -224,6 +224,31 @@ describe('Reader', () => {
     });
   });
 
-  // Fantasy Land tests excluded due to vitest coverage serialization issues
-  // The core point-free functions work correctly without FL methods
+  describe('Fantasy Land conformance', () => {
+    // Regression guard — see docs/PROTOTYPE_ISOLATION.md.
+    it('does not pollute Object.prototype with fantasy-land methods', () => {
+      Reader((env: number) => env + 1);
+      const objectProtoKeys = Object.keys(Object.prototype);
+      expect(objectProtoKeys).not.toContain('fantasy-land/map');
+      expect(({} as Record<string, unknown>)['fantasy-land/map']).toBeUndefined();
+    });
+
+    it('Reader exposes fantasy-land/of on the constructor', () => {
+      expect(typeof (Reader as unknown as Record<string, unknown>)['fantasy-land/of']).toBe('function');
+    });
+
+    it('Reader exposes fantasy-land/map via the prototype', () => {
+      const r = Reader((env: number) => env + 1) as unknown as Record<string, (f: (n: number) => number) => Reader<number, number>>;
+      expect(typeof r['fantasy-land/map']).toBe('function');
+      const mapped = r['fantasy-land/map']((n) => n * 2);
+      expect(mapped.run(3)).toBe(8);
+    });
+
+    it('Reader exposes fantasy-land/chain via the prototype', () => {
+      const r = Reader((env: number) => env + 1);
+      const proto = r as unknown as Record<string, (f: (n: number) => Reader<number, number>) => Reader<number, number>>;
+      const chained = proto['fantasy-land/chain']((n) => Reader((env: number) => n + env));
+      expect(chained.run(10)).toBe(21);
+    });
+  });
 });

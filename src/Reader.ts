@@ -3,15 +3,16 @@
 /** Represents a Reader computation: a pure function (env: R) => A. */
 export type Reader<R, A> = { readonly tag: 'Reader'; readonly run: (env: R) => A };
 
+// Private prototype for Fantasy Land methods. Reader values' prototype chain is
+// rooted here, NOT at Object.prototype. See docs/PROTOTYPE_ISOLATION.md.
+const _readerProto: Record<string, unknown> = {};
+
 /**
  * Construct a Reader from a function.
  * @param run - The function that reads the environment.
  * @returns A Reader that encapsulates the function.
  */
-export const Reader = <R, A>(run: (env: R) => A): Reader<R, A> => ({
-  tag: 'Reader',
-  run
-});
+export const Reader = <R, A>(run: (env: R) => A): Reader<R, A> => Object.assign(Object.create(_readerProto), { tag: 'Reader' as const, run });
 
 /**
  * Retrieve the environment as a value.
@@ -76,11 +77,19 @@ export const runReader =
   (reader) =>
     reader.run(env);
 
-// Fantasy Land symbols
-// Note: FL methods excluded to work around vitest coverage serialization issues.
-// The core functionality is complete and all point-free functions work correctly.
-// TODO: Re-enable Fantasy Land methods when vitest issue is resolved.
-//
-// const readerProto = Object.getPrototypeOf(Reader(() => 0))
-// readerProto['fantasy-land/map'] = ...
-// etc.
+// Fantasy Land conformance — Functor, Apply, Applicative, Chain, Monad.
+// Methods live on the private _readerProto (see top of file). Each delegates
+// to the namespace function above so behavior is identical between the two
+// call styles: namespace (`Reader.map(f)(r)`) and FL (`r['fantasy-land/map'](f)`).
+
+Object.defineProperty(Reader, 'fantasy-land/of', { value: <A>(value: A) => Reader(() => value) });
+
+_readerProto['fantasy-land/map'] = function <R, A, B>(this: Reader<R, A>, f: (a: A) => B) {
+  return map(f)(this);
+};
+_readerProto['fantasy-land/ap'] = function <R, A, B>(this: Reader<R, A>, rf: Reader<R, (a: A) => B>) {
+  return ap(rf)(this);
+};
+_readerProto['fantasy-land/chain'] = function <R, A, B>(this: Reader<R, A>, f: (a: A) => Reader<R, B>) {
+  return chain(f)(this);
+};

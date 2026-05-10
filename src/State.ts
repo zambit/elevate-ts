@@ -3,15 +3,16 @@
 /** Represents a State computation: a pure function (s: S) => readonly [A, S]. */
 export type State<S, A> = { readonly tag: 'State'; readonly run: (s: S) => readonly [A, S] };
 
+// Private prototype for Fantasy Land methods. State values' prototype chain is
+// rooted here, NOT at Object.prototype. See docs/PROTOTYPE_ISOLATION.md.
+const _stateProto: Record<string, unknown> = {};
+
 /**
  * Construct a State from a function.
  * @param run - The function that computes a value and new state.
  * @returns A State that encapsulates the computation.
  */
-export const State = <S, A>(run: (s: S) => readonly [A, S]): State<S, A> => ({
-  tag: 'State',
-  run
-});
+export const State = <S, A>(run: (s: S) => readonly [A, S]): State<S, A> => Object.assign(Object.create(_stateProto), { tag: 'State' as const, run });
 
 /**
  * Retrieve the current state.
@@ -114,11 +115,18 @@ export const execState =
     return s;
   };
 
-// Fantasy Land symbols
-// Note: FL methods excluded to work around vitest coverage serialization issues.
-// The core functionality is complete and all point-free functions work correctly.
-// TODO: Re-enable Fantasy Land methods when vitest issue is resolved.
-//
-// const stateProto = Object.getPrototypeOf(State(() => [0, 0]))
-// stateProto['fantasy-land/map'] = ...
-// etc.
+// Fantasy Land conformance — Functor, Apply, Applicative, Chain, Monad.
+// Methods live on the private _stateProto (see top of file) and delegate to
+// the namespace functions above.
+
+Object.defineProperty(State, 'fantasy-land/of', { value: <S, A>(value: A) => State<S, A>((s) => [value, s]) });
+
+_stateProto['fantasy-land/map'] = function <S, A, B>(this: State<S, A>, f: (a: A) => B) {
+  return map(f)(this);
+};
+_stateProto['fantasy-land/ap'] = function <S, A, B>(this: State<S, A>, sf: State<S, (a: A) => B>) {
+  return ap(sf)(this);
+};
+_stateProto['fantasy-land/chain'] = function <S, A, B>(this: State<S, A>, f: (a: A) => State<S, B>) {
+  return chain(f)(this);
+};

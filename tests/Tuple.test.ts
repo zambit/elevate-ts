@@ -273,6 +273,31 @@ describe('Tuple', () => {
     });
   });
 
-  // Fantasy Land tests excluded due to vitest coverage serialization issues
-  // The core point-free functions work correctly without FL methods
+  describe('Fantasy Land conformance', () => {
+    // Regression guard — see docs/PROTOTYPE_ISOLATION.md.
+    it('does not pollute Object.prototype with fantasy-land methods', () => {
+      Tuple(1, 2);
+      const objectProtoKeys = Object.keys(Object.prototype);
+      expect(objectProtoKeys).not.toContain('fantasy-land/map');
+      expect(objectProtoKeys).not.toContain('fantasy-land/bimap');
+      expect(({} as Record<string, unknown>)['fantasy-land/map']).toBeUndefined();
+    });
+
+    it('Tuple exposes fantasy-land/map (over snd) via the prototype', () => {
+      const t = Tuple('a', 5) as unknown as Record<string, (f: (n: number) => number) => Tuple<string, number>>;
+      expect(typeof t['fantasy-land/map']).toBe('function');
+      expect(t['fantasy-land/map']((n) => n * 2)).toEqual(Tuple('a', 10));
+    });
+
+    it('Tuple exposes fantasy-land/bimap via the prototype', () => {
+      const t = Tuple('a', 5);
+      const proto = t as unknown as Record<string, (f: (s: string) => string, g: (n: number) => number) => Tuple<string, number>>;
+      expect(
+        proto['fantasy-land/bimap'](
+          (s) => s.toUpperCase(),
+          (n) => n + 1
+        )
+      ).toEqual(Tuple('A', 6));
+    });
+  });
 });

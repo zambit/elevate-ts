@@ -3,13 +3,17 @@
 /** Immutable 2-tuple. */
 export type Tuple<A, B> = { readonly fst: A; readonly snd: B };
 
+// Private prototype for Fantasy Land methods. Tuple values' prototype chain is
+// rooted here, NOT at Object.prototype. See docs/PROTOTYPE_ISOLATION.md.
+const _tupleProto: Record<string, unknown> = {};
+
 /**
  * Construct a Tuple from two values.
  * @param fst - The first component.
  * @param snd - The second component.
  * @returns A Tuple containing both values.
  */
-export const Tuple = <A, B>(fst: A, snd: B): Tuple<A, B> => ({ fst, snd });
+export const Tuple = <A, B>(fst: A, snd: B): Tuple<A, B> => Object.assign(Object.create(_tupleProto), { fst, snd });
 
 /**
  * Extract the first component.
@@ -88,11 +92,13 @@ export const fanout =
   (a) =>
     Tuple(f(a), g(a));
 
-// Fantasy Land symbols
-// Note: FL methods excluded to work around vitest coverage serialization issues.
-// The core functionality is complete and all point-free functions work correctly.
-// TODO: Re-enable Fantasy Land methods when vitest issue is resolved.
-//
-// const tupleProto = Object.getPrototypeOf(Tuple(0, 0))
-// tupleProto['fantasy-land/bimap'] = ...
-// etc.
+// Fantasy Land conformance — Functor and Bifunctor.
+// By convention, Tuple's Functor instance maps over the second component;
+// callers wanting both components use bimap.
+
+_tupleProto['fantasy-land/map'] = function <A, B, B2>(this: Tuple<A, B>, f: (b: B) => B2) {
+  return mapSnd(f)(this);
+};
+_tupleProto['fantasy-land/bimap'] = function <A, B, A2, B2>(this: Tuple<A, B>, f: (a: A) => A2, g: (b: B) => B2) {
+  return bimap(f, g)(this);
+};

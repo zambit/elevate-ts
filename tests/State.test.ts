@@ -241,6 +241,31 @@ describe('State', () => {
     });
   });
 
-  // Fantasy Land tests excluded due to vitest coverage serialization issues
-  // The core point-free functions work correctly without FL methods
+  describe('Fantasy Land conformance', () => {
+    // Regression guard — see docs/PROTOTYPE_ISOLATION.md.
+    it('does not pollute Object.prototype with fantasy-land methods', () => {
+      State((s: number) => [s + 1, s] as const);
+      const objectProtoKeys = Object.keys(Object.prototype);
+      expect(objectProtoKeys).not.toContain('fantasy-land/map');
+      expect(({} as Record<string, unknown>)['fantasy-land/map']).toBeUndefined();
+    });
+
+    it('State exposes fantasy-land/of on the constructor', () => {
+      expect(typeof (State as unknown as Record<string, unknown>)['fantasy-land/of']).toBe('function');
+    });
+
+    it('State exposes fantasy-land/map via the prototype', () => {
+      const s = State((n: number) => [n + 1, n] as const) as unknown as Record<string, (f: (n: number) => number) => State<number, number>>;
+      expect(typeof s['fantasy-land/map']).toBe('function');
+      const mapped = s['fantasy-land/map']((n) => n * 2);
+      expect(mapped.run(3)).toEqual([8, 3]);
+    });
+
+    it('State exposes fantasy-land/chain via the prototype', () => {
+      const s = State((n: number) => [n + 1, n + 1] as const);
+      const proto = s as unknown as Record<string, (f: (n: number) => State<number, number>) => State<number, number>>;
+      const chained = proto['fantasy-land/chain']((n) => State((s2: number) => [n + s2, s2] as const));
+      expect(chained.run(0)).toEqual([2, 1]);
+    });
+  });
 });
