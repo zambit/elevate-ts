@@ -20,5 +20,6 @@ export * as Function from './Function.js';
 export * as MaybeAsync from './MaybeAsync.js';
 export * as EitherAsync from './EitherAsync.js';
 export * as ReaderEitherAsync from './ReaderEitherAsync.js';
+export * as CancellableEitherAsync from './CancellableEitherAsync.js';
 export * as Audit from './Audit.js';
 export * as HTTP from './HTTP.js';
