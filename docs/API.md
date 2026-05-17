@@ -518,6 +518,79 @@ loggers). Equivalent in role to fp-ts `ReaderTaskEither`.
 
 ---
 
+## CancellableEitherAsync — Lazy Async Either with Cooperative Cancellation
+
+Extends `EitherAsync` with a third terminal state, `Cancelled`, and threads an optional `AbortSignal` through `run()`. Use it for timeouts, races, and request flows that must abandon work cleanly.
+Sibling to `EitherAsync`; existing `EitherAsync` users are unaffected. See [CANCELLABLE_DESIGN.md](./CANCELLABLE_DESIGN.md) for the design rationale and deferred v2 follow-ups.
+
+### Types
+
+- **`CancellableEitherAsync<L, R>`** — Lazy wrapper around `(signal?: AbortSignal) => Promise<CancellableResult<L, R>>`
+- **`Cancelled`** — Third terminal state: `{ tag: 'Cancelled'; reason: unknown }`
+- **`CancellableResult<L, R>`** — `Either<L, R> | Cancelled`
+
+### Constructors & Guards
+
+- **`CancellableEitherAsync(run: (signal?: AbortSignal) => Promise<CancellableResult<L, R>>): CancellableEitherAsync<L, R>`** — Raw constructor
+- **`Cancelled(reason: unknown): Cancelled`** — Construct a Cancelled terminal with a reason
+- **`of(value: R): CancellableEitherAsync<never, R>`** — Lift a pure Right
+- **`right(value: R): CancellableEitherAsync<never, R>`** — Alias for `of`
+- **`left(error: L): CancellableEitherAsync<L, never>`** — Lift a pure Left
+- **`cancelled(reason: unknown): CancellableEitherAsync<never, never>`** — Lift a pure Cancelled terminal
+- **`isCancelled(r: CancellableResult<L, R>): r is Cancelled`** — Type guard
+
+### Lifts
+
+- **`liftEither(e: Either<L, R>): CancellableEitherAsync<L, R>`** — Lift a sync Either
+- **`fromEitherAsync(ea: EitherAsync<L, R>): CancellableEitherAsync<L, R>`** — Lift an EitherAsync; signal is ignored, this stage cannot self-cancel
+- **`toEitherAsync(cea: CancellableEitherAsync<L, R>, onCancel: (reason: unknown) => L): EitherAsync<L, R>`** — Collapse `Cancelled` into `Left` via `onCancel`
+
+### Promise Lifting
+
+- **`fromPromise(p: Promise<R>, onError: (e: unknown) => L): CancellableEitherAsync<L, R>`** — Lift a Promise; rejections become `Left`
+- **`fromAbortable(f: (signal: AbortSignal) => Promise<R>, onError: (e: unknown) => L): CancellableEitherAsync<L, R>`** — **Primary cancellation lift.** `AbortError` rejections become `Cancelled`;
+  other rejections become `Left` via `onError`; pre-aborted signals short-circuit before invocation
+- **`tryCatch(f: () => Promise<R>, onError: (e: unknown) => L): CancellableEitherAsync<L, R>`** — Wrap a non-signal-aware async function; the wrapper still short-circuits to `Cancelled` if the signal
+  is aborted at entry or after resolve
+
+### Functor / Bifunctor / Monad / Applicative
+
+All combinators propagate `Cancelled` unchanged unless explicitly noted.
+
+- **`map(f: (a: A) => B): (cea) => CancellableEitherAsync<L, B>`** — Map over Right
+- **`mapLeft(f: (l: L) => L2): (cea) => CancellableEitherAsync<L2, R>`** — Map over Left
+- **`bimap(f, g): (cea) => CancellableEitherAsync<L2, B>`** — Map over both
+- **`chain(f: (a: A) => CancellableEitherAsync<L, B>): (cea) => CancellableEitherAsync<L, B>`** — Monadic bind; signal is threaded into the downstream stage
+- **`chainLeft(f: (l: L) => CancellableEitherAsync<L2, R>): (cea) => CancellableEitherAsync<L2, R>`** — Recover from `Left`. **Does NOT recover from `Cancelled`** — by design, so abandoned work is not
+  silently re-run
+- **`chainCancelled(f: (reason: unknown) => CancellableEitherAsync<L, R>): (cea) => CancellableEitherAsync<L, R>`** — Recover from `Cancelled`; `Right` and `Left` pass through untouched
+- **`ap(cef: CancellableEitherAsync<L, (a: A) => B>): (cea) => CancellableEitherAsync<L, B>`** — Applicative apply
+
+### Cancellation Operations
+
+- **`withTimeout(ms: number): (cea) => CancellableEitherAsync<L, R>`** — Cancel after `ms` milliseconds. Composes an internal timeout controller with the external signal via `AbortSignal.any`.
+  Timeouts surface as `Cancelled` with reason `Error('timeout after Nms')`. Use `chainCancelled` to convert to a typed `Left` if wanted
+- **`race(ceas: readonly CancellableEitherAsync<L, R>[]): CancellableEitherAsync<L, R>`** — First to settle wins; losers' linked signals are aborted so downstream I/O can short-circuit. Empty input →
+  `Cancelled('race called with empty array')`
+- **`onCancel(handler: (reason: unknown) => void): (cea) => CancellableEitherAsync<L, R>`** — Cleanup hook. Fires whenever this stage produces `Cancelled`, **including upstream propagation** (matches
+  Effect-TS / fp-ts semantics). A throwing handler is silently caught — `run()` never re-throws
+
+### Extraction & Analysis
+
+- **`fold(onLeft, onRight, onCancelled): (cea) => (signal?: AbortSignal) => Promise<B>`** — Three-arm case analysis; the signal is forwarded to the wrapped computation
+
+### Array Operations
+
+- **`all(ceas: readonly CancellableEitherAsync<L, R>[]): CancellableEitherAsync<L, readonly R[]>`** — All-or-first-non-Right, runs in parallel under a shared signal. First `Left` or `Cancelled` aborts
+  the shared controller so any in-flight sibling I/O can short-circuit
+
+### Execution
+
+- **`run(signal?: AbortSignal): Promise<CancellableResult<L, R>>`** — Execute with an optional signal (property on the type). Upholds the never-rejects contract: `AbortError` → `Cancelled`, any other
+  thrown/rejected value → `Left(onError(e))`, never re-throws
+
+---
+
 ## HTTP — CloudFlare Workers & Web Fetch API Helpers
 
 Utilities for building HTTP handlers with Either/EitherAsync, managing environment variables via Reader, and mapping domain errors to HTTP status codes.
