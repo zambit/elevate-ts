@@ -86,6 +86,11 @@
       "require": "./dist/cjs/ReaderEitherAsync.js",
       "types": "./dist/esm/ReaderEitherAsync.d.ts"
     },
+    "./CancellableEitherAsync": {
+      "import": "./dist/esm/CancellableEitherAsync.js",
+      "require": "./dist/cjs/CancellableEitherAsync.js",
+      "types": "./dist/esm/CancellableEitherAsync.d.ts"
+    },
     "./Audit": {
       "import": "./dist/esm/Audit.js",
       "require": "./dist/cjs/Audit.js",
