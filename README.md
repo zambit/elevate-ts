@@ -1,7 +1,7 @@
 # elevate-ts
 
 [![Coverage](https://img.shields.io/badge/coverage-95.54%25-brightgreen)](./coverage/index.html)
-[![npm](https://img.shields.io/badge/npm-0.5.0-lightgrey)](https://npmjs.com/package/@zambit/elevate-ts)
+[![npm](https://img.shields.io/badge/npm-0.6.0-lightgrey)](https://npmjs.com/package/@zambit/elevate-ts)
 [![License: AGPL%20v3%2B](https://img.shields.io/badge/license-AGPL%20v3%2B-green.svg)](https://github.com/zambit/elevate-ts/blob/main/LICENSE)
 
 Point-free, data-last functional programming for TypeScript. Fantasy Land 5 compliant. Zero dependencies. Cloudflare Workers ready.
@@ -44,22 +44,23 @@ const result2 = pipe(
 
 ## Modules
 
-| Module            | Description                                                                      |
-| ----------------- | -------------------------------------------------------------------------------- |
-| Maybe             | Optional values; Functor, Applicative, Monad, Alt, Filter                        |
-| Either            | Values with a Left error branch; Bifunctor, Monad, Alt                           |
-| Validation        | Functor for collecting all errors during applicative (not short-circuit)         |
-| Reader            | Dependency injection / environment access; Functor, Applicative, Monad           |
-| State             | Pure stateful computation; Functor, Applicative, Monad                           |
-| Tuple             | Immutable 2-tuple; Functor, Bifunctor                                            |
-| NonEmptyList      | Guaranteed-nonempty array; Functor, Applicative, Monad, Monoid                   |
-| List              | Utilities over plain readonly arrays; map, filter, partition, zip, etc.          |
-| Function          | Function composition and utilities; pipe, flow, curry, memoize, once, tap        |
-| MaybeAsync        | Lazy async Maybe; rejects or throws become Nothing; never rejects                |
-| EitherAsync       | Lazy async Either; rejects become Left; never throws                             |
-| ReaderEitherAsync | Lazy async Either with dependency injection; `(env: R) => Promise<Either<L, A>>` |
-| Audit             | Operation tracking with time-travel replay; configurable ID generation           |
-| HTTP              | CloudFlare Workers & Web Fetch API helpers; safe JSON, env, error mapping        |
+| Module                 | Description                                                                          |
+| ---------------------- | ------------------------------------------------------------------------------------ |
+| Maybe                  | Optional values; Functor, Applicative, Monad, Alt, Filter                            |
+| Either                 | Values with a Left error branch; Bifunctor, Monad, Alt                               |
+| Validation             | Functor for collecting all errors during applicative (not short-circuit)             |
+| Reader                 | Dependency injection / environment access; Functor, Applicative, Monad               |
+| State                  | Pure stateful computation; Functor, Applicative, Monad                               |
+| Tuple                  | Immutable 2-tuple; Functor, Bifunctor                                                |
+| NonEmptyList           | Guaranteed-nonempty array; Functor, Applicative, Monad, Monoid                       |
+| List                   | Utilities over plain readonly arrays; map, filter, partition, zip, etc.              |
+| Function               | Function composition and utilities; pipe, flow, curry, memoize, once, tap            |
+| MaybeAsync             | Lazy async Maybe; rejects or throws become Nothing; never rejects                    |
+| EitherAsync            | Lazy async Either; rejects become Left; never throws                                 |
+| ReaderEitherAsync      | Lazy async Either with dependency injection; `(env: R) => Promise<Either<L, A>>`     |
+| CancellableEitherAsync | Lazy async Either with `AbortSignal` cancellation; `withTimeout`, `race`, `onCancel` |
+| Audit                  | Operation tracking with time-travel replay; configurable ID generation               |
+| HTTP                   | CloudFlare Workers & Web Fetch API helpers; safe JSON, env, error mapping            |
 
 ## Quick API Reference
 
@@ -170,6 +171,19 @@ fromPromise(p, onError) | tryCatch(f, onError)
 runReaderEitherAsync(env) | getOrElse(default) | fold(onLeft, onRight)
 all(reas)
 ```
+
+### CancellableEitherAsync
+
+```typescript
+CancellableEitherAsync(run) | of(value) | right(value) | left(error) | cancelled(reason);
+liftEither(ea) | fromEitherAsync(ea) | toEitherAsync(cea, onCancel);
+fromPromise(p, onError) | fromAbortable(f, onError) | tryCatch(f, onError);
+map(f) | mapLeft(f) | bimap(f, g) | chain(f) | chainLeft(f) | chainCancelled(f) | ap(cf);
+withTimeout(ms) | race(ceas) | onCancel(handler);
+fold(onLeft, onRight, onCancelled) | all(ceas);
+```
+
+`chainLeft` does **not** recover from `Cancelled` — use `chainCancelled` for that. See [docs/CANCELLABLE_DESIGN.md](./docs/CANCELLABLE_DESIGN.md) for the design rationale and v2 follow-ups.
 
 ### Audit
 
