@@ -18,17 +18,23 @@ TOKENS.md
 FANTASY_LAND.md
 PRIVATE_PACKAGE_ACCESS.md
 elevate-ts-bootstrap.md
+elevate-ts-vs-effect-critique.md
 PHILOSOPHY.md
 CONTRIBUTING.md
 PUBLISH_CHECKLIST.md
 CHANGELOG.md
+locals/
+reviews/
 
 # Config files
 .eslintrc.json
 .eslintignore
+eslint.config.js
 .prettierignore
 .prettierrc.json
 .markdownlint.json
+.markdownlintrc.changelog.json
+.markdownlintignore
 
 # Repository & CI/CD
 .github/
