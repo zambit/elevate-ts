@@ -49,7 +49,7 @@ jobs:
         run: pnpm changeset:version
 
       - name: Create Release PR
-        uses: peter-evans/create-pull-request@v6
+        uses: peter-evans/create-pull-request@v8
         with:
           commit-message: 'release: version packages'
           title: 'release: version packages'
