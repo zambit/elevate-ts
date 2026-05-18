@@ -103,7 +103,7 @@
     }
   },
   "scripts": {
-    "build": "tsc -p src/tsconfig.json && tsc -p tsconfig.esm.json && node scripts/generate-cjs-package.mjs",
+    "build": "rm -rf dist && tsc -p src/tsconfig.json && tsc -p tsconfig.esm.json && node scripts/generate-cjs-package.mjs",
     "test": "vitest run --coverage",
     "test:watch": "vitest",
     "check:types": "tsc -p tsconfig.app.json --noEmit",
