@@ -100,6 +100,11 @@
       "import": "./dist/esm/HTTP.js",
       "require": "./dist/cjs/HTTP.js",
       "types": "./dist/esm/HTTP.d.ts"
+    },
+    "./Schema": {
+      "import": "./dist/esm/Schema.js",
+      "require": "./dist/cjs/Schema.js",
+      "types": "./dist/esm/Schema.d.ts"
     }
   },
   "scripts": {

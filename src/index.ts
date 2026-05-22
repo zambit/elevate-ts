@@ -23,3 +23,4 @@ export * as ReaderEitherAsync from './ReaderEitherAsync.js';
 export * as CancellableEitherAsync from './CancellableEitherAsync.js';
 export * as Audit from './Audit.js';
 export * as HTTP from './HTTP.js';
+export * as Schema from './Schema.js';
