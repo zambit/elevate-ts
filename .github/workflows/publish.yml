@@ -12,6 +12,10 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     name: Publish to npm
+    # NPM_TOKEN lives on the `prod` GitHub environment, not as a repo-level
+    # secret. Declaring the environment here is what makes secrets.NPM_TOKEN
+    # resolve. Also creates a deployment record per release for audit.
+    environment: prod
     permissions:
       contents: read
       id-token: write
