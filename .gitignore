@@ -17,3 +17,4 @@ prompts/
 CLAUDE.md
 llm-context
 locals/
+.DS_Store
