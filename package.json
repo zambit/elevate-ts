@@ -120,6 +120,7 @@
     "check:exports": "node scripts/check-exports.mjs",
     "check:nodeps": "node scripts/check-no-node-builtins.mjs",
     "check:readme": "node scripts/check-readme-version.mjs",
+    "fix:changelog": "node scripts/disambiguate-changelog-headings.mjs",
     "prepare": "husky install",
     "changeset": "changeset",
     "changeset:version": "changeset version",

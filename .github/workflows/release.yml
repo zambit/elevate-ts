@@ -48,6 +48,15 @@ jobs:
       - name: Version packages
         run: pnpm changeset:version
 
+      # changeset's default changelog generator writes `### Minor Changes` /
+      # `### Patch Changes` without a per-version suffix, but the project's
+      # CHANGELOG convention (see commit 13eeb15) requires each heading to be
+      # unique. Without this step, lint-staged blocks the release commit on
+      # MD024 duplicate-heading errors. Idempotent and conservative — only
+      # touches unsuffixed headings.
+      - name: Disambiguate CHANGELOG headings
+        run: pnpm fix:changelog
+
       - name: Create Release PR
         uses: peter-evans/create-pull-request@v8
         with:
