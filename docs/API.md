@@ -647,3 +647,78 @@ export default {
   fetch: handler
 };
 ```
+
+---
+
+## Schema — Declarative Parsers
+
+Declarative parsers over `Validation`. Tree-shakable, function-based, and composes with `pipe` from `Function`. Errors accumulate across nested structures, each tagged with a `path` into the input.
+Inspired by [valibot](https://valibot.dev). See [docs/Schema.md](./Schema.md) for the full guide.
+
+### Types
+
+- **`Schema<T>`** — `(input: unknown) => Validation<Issue, T>`
+- **`Issue`** — `{ kind, expected, received, path, message }` describing one validation failure
+- **`InferOutput<S>`** — Conditional type that extracts the success type from a `Schema<T>`
+
+### Primitives
+
+- **`string(): Schema<string>`** — Accept any string
+- **`number(): Schema<number>`** — Accept any non-`NaN` number
+- **`boolean(): Schema<boolean>`** — Accept a boolean
+- **`literal<L extends string | number | boolean>(value: L): Schema<L>`** — Accept the exact value (`===`)
+- **`null_(): Schema<null>`** — Accept `null` only
+- **`undefined_(): Schema<undefined>`** — Accept `undefined` only
+- **`unknown_(): Schema<unknown>`** — Pass-through; accepts anything
+
+### Combinators
+
+- **`object<S>(shape: S): Schema<InferShape<S>>`** — Validate each field; accumulate errors across keys with prefixed paths
+- **`array<T>(item: Schema<T>): Schema<readonly T[]>`** — Validate each index; accumulate errors with indexed paths
+- **`union<S extends readonly Schema<unknown>[]>(...schemas: S): Schema<InferOutput<S[number]>>`** — Return first matching schema; accumulate all errors if none match
+- **`optional<T>(schema: Schema<T>): Schema<T | undefined>`** — Accept `undefined` OR the underlying schema
+- **`nullable<T>(schema: Schema<T>): Schema<T | null>`** — Accept `null` OR the underlying schema
+
+### Refinements
+
+Refinements are HOFs of shape `(args) => (schema: Schema<T>) => Schema<T>`, so they slot into `pipe`.
+
+- **`refine<T>(predicate: (v: T) => boolean, message: string): (s: Schema<T>) => Schema<T>`** — Generic escape hatch for any custom rule
+- **`minLength(n: number): <T extends { length: number }>(s: Schema<T>) => Schema<T>`** — Length floor (strings and arrays)
+- **`maxLength(n: number): <T extends { length: number }>(s: Schema<T>) => Schema<T>`** — Length ceiling (strings and arrays)
+- **`regex(pattern: RegExp, message?: string): (s: Schema<string>) => Schema<string>`** — String pattern match; base for `email` / `url` / `uuid` (build those on top)
+
+### Transform
+
+- **`transform<A, B>(decodeFn: (a: A) => B, encodeFn?: (b: B) => A): (s: Schema<A>) => Schema<B>`** — Widen a schema's output beyond its input shape. The `encodeFn` argument is optional and preserved
+  on the returned schema for a future round-trip-aware `serialize`
+
+### Serialization
+
+- **`serialize<T>(schema: Schema<T>, value: T): Validation<Issue, string>`** — JSON-serialize a typed value (v1 delegates to `JSON.stringify`)
+- **`deserialize<T>(schema: Schema<T>, raw: string): Validation<Issue, T>`** — Parse JSON and validate against a schema
+
+### Example: User Schema with Accumulation and Paths
+
+```typescript
+import * as S from '@zambit/elevate-ts/Schema';
+import { pipe } from '@zambit/elevate-ts/Function';
+
+const User = S.object({
+  name: pipe(S.string(), S.minLength(1)),
+  age: pipe(
+    S.number(),
+    S.refine<number>((n) => n >= 0, 'must be non-negative')
+  ),
+  email: pipe(S.string(), S.regex(/^[^@]+@[^@]+$/)),
+  tags: pipe(S.array(S.string()), S.maxLength(10))
+});
+
+type User = S.InferOutput<typeof User>;
+
+const r = User({ name: '', age: -1, email: 'x@y', tags: [] });
+// Failure([
+//   { kind: 'refinement', path: ['name'], message: 'Expected length >= 1', ... },
+//   { kind: 'refinement', path: ['age'],  message: 'must be non-negative',   ... },
+// ])
+```

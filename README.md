@@ -1,7 +1,7 @@
 # elevate-ts
 
-[![Coverage](https://img.shields.io/badge/coverage-95.54%25-brightgreen)](./coverage/index.html)
-[![npm](https://img.shields.io/badge/npm-0.6.0-lightgrey)](https://npmjs.com/package/@zambit/elevate-ts)
+[![Coverage](https://img.shields.io/badge/coverage-96.27%25-brightgreen)](./coverage/index.html)
+[![npm](https://img.shields.io/badge/npm-0.7.0-lightgrey)](https://npmjs.com/package/@zambit/elevate-ts)
 [![License: AGPL%20v3%2B](https://img.shields.io/badge/license-AGPL%20v3%2B-green.svg)](https://github.com/zambit/elevate-ts/blob/main/LICENSE)
 
 Point-free, data-last functional programming for TypeScript. Fantasy Land 5 compliant. Zero dependencies. Cloudflare Workers ready.
@@ -61,6 +61,7 @@ const result2 = pipe(
 | CancellableEitherAsync | Lazy async Either with `AbortSignal` cancellation; `withTimeout`, `race`, `onCancel` |
 | Audit                  | Operation tracking with time-travel replay; configurable ID generation               |
 | HTTP                   | CloudFlare Workers & Web Fetch API helpers; safe JSON, env, error mapping            |
+| Schema                 | Declarative parsers over Validation; tree-shakable; accumulated errors with paths    |
 
 ## Quick API Reference
 
@@ -203,6 +204,19 @@ withStatusCode(codes) | handleEither(onL, onR) | handleEitherAsync(onL, onR);
 ```
 
 See [docs/HTTP.md](./docs/HTTP.md) for comprehensive guide with CloudFlare Workers examples (simple, medium, complex scenarios).
+
+### Schema
+
+```typescript
+string() | number() | boolean() | literal(v) | null_() | undefined_() | unknown_();
+object(shape) | array(item) | union(...ss) | optional(s) | nullable(s);
+refine(pred, msg) | minLength(n) | maxLength(n) | regex(pattern, msg?);
+transform(decodeFn, encodeFn?) | serialize(s, v) | deserialize(s, raw);
+type InferOutput<S> = S extends Schema<infer T> ? T : never;
+```
+
+Inspired by valibot — function-based, data-last, tree-shakable. Schemas return `Validation<Issue, T>` so errors accumulate across object keys and array indices, each tagged with a `path` like
+`['users', 3, 'email']`. See [docs/Schema.md](./docs/Schema.md) for the full guide and design rationale (including why v1 is decode-only with an opt-in encode half on `transform`).
 
 ## Learning & Examples
 
