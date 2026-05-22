@@ -3,7 +3,10 @@ name: Publish to npm
 on:
   push:
     tags:
-      - 'v*'
+      # Matches what `changeset publish` creates by default (and what 0.4.x / 0.5.x used).
+      # Commercial publishes use the same prefix with a `-commercial` suffix,
+      # which is detected below via the existing endsWith check on github.ref.
+      - '@zambit/elevate-ts@*'
 
 jobs:
   publish:
