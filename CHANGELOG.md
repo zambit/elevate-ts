@@ -2,7 +2,7 @@
 
 ## 0.7.0
 
-### Minor Changes
+### Minor Changes (0.7.0)
 
 - bb469d2: # Schema Module
 
@@ -48,7 +48,7 @@
 
   Also clarifies in the project documentation that elevate-ts `EitherAsync<L, R>` is the equivalent of what fp-ts and purify-ts call `Task<E, A>` / `TaskEither<E, A>`.
 
-### Patch Changes
+### Patch Changes (0.5.0)
 
 - Fix: Object.prototype pollution from Fantasy Land patching
 
