@@ -25,7 +25,7 @@ This creates a file in `.changeset/` like:
 
 ```markdown
 ---
-'elevate-ts': minor
+'@zambit/elevate-ts': minor
 ---
 
 Added Reader monad for dependency injection
@@ -68,16 +68,20 @@ Merge to `main` or `initial` branch.
 
 ### Step 4: Publish
 
-Once merged, GitHub Actions automatically publishes to npm:
+`publish.yml` fires on tag pushes matching `@zambit/elevate-ts@*`. After the release PR is merged you still need to **push the tag** to trigger the workflow — that step is not yet automated.
 
-**Automatic (Recommended):**
+**Recommended (CI-driven):**
 
-- Merge the version bump PR
-- GitHub Actions `publish.yml` detects the version change → publishes to npm
-- GitHub creates a release tag
-- Done! ✅
+```bash
+git fetch origin && git checkout main && git pull
+git tag @zambit/elevate-ts@<VERSION> -m "Release <VERSION>"
+git push origin @zambit/elevate-ts@<VERSION>
+```
 
-**Manual:**
+The workflow then builds, tests, runs `npm publish --tag agpl --provenance`, and creates a GitHub Release. For a commercial publish, append `-commercial` to the tag:
+`@zambit/elevate-ts@<VERSION>-commercial`.
+
+**Manual (local, bypasses CI):**
 
 ```bash
 pnpm changeset:publish
@@ -86,7 +90,9 @@ pnpm changeset:publish
 This runs:
 
 1. `pnpm build` — Compile TypeScript
-2. `changeset publish` — Upload to npm
+2. `changeset publish` — Upload to npm, push the canonical `@zambit/elevate-ts@<VERSION>` tag
+
+Use this if the CI npm auth is unavailable or you need to ship fast.
 
 ## Pre-Publication Checklist
 

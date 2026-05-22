@@ -40,7 +40,7 @@ jobs:
         run: |
           cat > .changeset/release-${{ github.run_id }}.md << 'EOF'
           ---
-          "elevate-ts": ${{ github.event.inputs.bump }}
+          "@zambit/elevate-ts": ${{ github.event.inputs.bump }}
           ---
           Release version bump: ${{ github.event.inputs.bump }}
           EOF
