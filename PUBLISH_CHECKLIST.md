@@ -14,7 +14,7 @@ pnpm changeset
 
 You'll be prompted to:
 
-1. **Select packages** — Choose `elevate-ts`
+1. **Select packages** — Choose `@zambit/elevate-ts`
 2. **Select bump type**:
    - `patch` — Bug fixes, no API changes (0.1.0 → 0.1.1)
    - `minor` — New features, backward compatible (0.1.0 → 0.2.0)
@@ -168,13 +168,13 @@ After 24 hours, create a patch version instead of unpublishing.
 
 The following processes are automated:
 
-| Part                 | Automated | Tool                          |
-| -------------------- | --------- | ----------------------------- |
-| Version detection    | ✅        | Changesets (based on commits) |
-| Changelog generation | ✅        | Changesets + git history      |
-| Git tagging          | ✅        | GitHub Actions                |
-| npm publishing       | ✅        | GitHub Actions                |
-| GitHub Releases      | ✅        | GitHub Actions                |
+| Part                 | Automated | Tool                                              |
+| -------------------- | --------- | ------------------------------------------------- |
+| Version detection    | ✅        | Changesets (per-PR `.changeset/*.md`)             |
+| Changelog generation | ✅        | Changesets + git history                          |
+| Git tagging          | ❌        | Manual `git tag` push after the release PR merges |
+| npm publishing       | ✅        | `publish.yml` on `@zambit/elevate-ts@*` tag push  |
+| GitHub Releases      | ✅        | `publish.yml` after a successful npm publish      |
 
 ## See Also
 
