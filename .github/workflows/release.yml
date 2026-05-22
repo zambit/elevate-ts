@@ -17,6 +17,14 @@ jobs:
   release:
     runs-on: ubuntu-latest
     name: Create Release PR
+    # GITHUB_TOKEN defaults to read-only in this repo. peter-evans needs
+    # `contents: write` to push the release branch, and `pull-requests: write`
+    # to open the PR. The repo-level "Allow GitHub Actions to create and
+    # approve pull requests" toggle (Settings → Actions → General) must also
+    # be enabled — see PR description.
+    permissions:
+      contents: write
+      pull-requests: write
 
     steps:
       - uses: actions/checkout@v6
