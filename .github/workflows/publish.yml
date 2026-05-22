@@ -54,7 +54,9 @@ jobs:
 
       - name: Publish AGPL version
         if: steps.license.outputs.type == 'agpl'
-        run: npm publish --tag agpl --provenance
+        # No explicit --tag — npm defaults to `latest`, so the npmjs.com page
+        # and plain `npm install @zambit/elevate-ts` track each release.
+        run: npm publish --provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
