@@ -121,6 +121,7 @@
     "check:nodeps": "node scripts/check-no-node-builtins.mjs",
     "check:readme": "node scripts/check-readme-version.mjs",
     "fix:changelog": "node scripts/disambiguate-changelog-headings.mjs",
+    "make-release": "node scripts/make-release.mjs",
     "prepare": "husky install",
     "changeset": "changeset",
     "changeset:version": "changeset version",
