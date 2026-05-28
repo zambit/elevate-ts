@@ -21,6 +21,8 @@ pnpm add @zambit/elevate-ts
 - **Fantasy Land 5**: All applicable types implement the spec
 - **Zero runtime dependencies**: Ship only pure TypeScript
 
+See [docs/CURRYING_AND_POINT_FREE.md](./docs/CURRYING_AND_POINT_FREE.md) for how the curried, data-last, point-free style works and how to read it.
+
 ## Quick Start
 
 ```typescript
@@ -92,6 +94,9 @@ ap(vf) | chain(f) | fold(onFailure, onSuccess);
 fromEither(ea) | sequence(validations);
 ```
 
+`ap` is function-first (`ap(vf)(va)`). See [docs/STATE_AND_VALIDATION.md](./docs/STATE_AND_VALIDATION.md) for when to use the `ap` chain vs. `sequence` / `traverse` and why there is no value-first
+`ap`.
+
 ### Reader
 
 ```typescript
@@ -106,6 +111,8 @@ State(run) | get() | put(s) | modify(f) | gets(f);
 map(f) | chain(f);
 runState(s) | evalState(s) | execState(s);
 ```
+
+`runState` returns `[value, state]`, `evalState` the value, `execState` the state. See [docs/STATE_AND_VALIDATION.md](./docs/STATE_AND_VALIDATION.md) for which to reach for.
 
 ### Tuple
 
