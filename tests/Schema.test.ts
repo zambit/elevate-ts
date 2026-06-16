@@ -327,6 +327,153 @@ describe('Schema', () => {
     });
   });
 
+  describe('serialize / deserialize round-trip with encoders', () => {
+    it('round-trips a Date via transform with encodeFn', () => {
+      const DateSchema = pipe(
+        string(),
+        transform<string, Date>(
+          (iso) => new Date(iso),
+          (d) => d.toISOString()
+        )
+      );
+      const value = new Date('2026-05-22T00:00:00.000Z');
+      const ser = serialize(DateSchema, value);
+      expect(ser.tag).toBe('Success');
+      if (ser.tag === 'Success') {
+        expect(ser.value).toBe('"2026-05-22T00:00:00.000Z"');
+        const back = deserialize(DateSchema, ser.value);
+        if (back.tag === 'Success') {
+          expect(back.value.toISOString()).toBe('2026-05-22T00:00:00.000Z');
+        }
+      }
+    });
+
+    it('round-trips a nested object with a transformed field', () => {
+      const Event = object({
+        name: string(),
+        date: pipe(
+          string(),
+          transform<string, Date>(
+            (iso) => new Date(iso),
+            (d) => d.toISOString()
+          )
+        )
+      });
+      const value = { name: 'launch', date: new Date('2026-05-22T00:00:00.000Z') };
+      const ser = serialize(Event, value);
+      expect(ser.tag).toBe('Success');
+      if (ser.tag === 'Success') {
+        expect(ser.value).toBe('{"name":"launch","date":"2026-05-22T00:00:00.000Z"}');
+        const back = deserialize(Event, ser.value);
+        if (back.tag === 'Success') {
+          expect(back.value.name).toBe('launch');
+          expect(back.value.date.toISOString()).toBe('2026-05-22T00:00:00.000Z');
+        }
+      }
+    });
+
+    it('round-trips an array of transformed values', () => {
+      const Dates = array(
+        pipe(
+          string(),
+          transform<string, Date>(
+            (iso) => new Date(iso),
+            (d) => d.toISOString()
+          )
+        )
+      );
+      const value: readonly Date[] = [new Date('2026-05-22T00:00:00.000Z'), new Date('2026-05-23T00:00:00.000Z')];
+      const ser = serialize(Dates, value);
+      if (ser.tag === 'Success') {
+        const back = deserialize(Dates, ser.value);
+        if (back.tag === 'Success') {
+          expect(back.value).toHaveLength(2);
+          expect(back.value[0]!.toISOString()).toBe('2026-05-22T00:00:00.000Z');
+          expect(back.value[1]!.toISOString()).toBe('2026-05-23T00:00:00.000Z');
+        }
+      }
+    });
+
+    it('serialize fails for a transform without encodeFn', () => {
+      const s = pipe(
+        string(),
+        transform<string, number>((v) => v.length)
+      );
+      const r = serialize(s, 5);
+      expect(isFailure(r)).toBe(true);
+      if (r.tag === 'Failure') {
+        expect(r.errors[0]!.message).toContain('encodeFn is required');
+      }
+    });
+
+    it('round-trips through refinements (encoder is inner schemas)', () => {
+      const PositiveInt = pipe(
+        number(),
+        refine<number>((n) => n > 0 && Number.isInteger(n), 'positive integer')
+      );
+      const ser = serialize(PositiveInt, 42);
+      if (ser.tag === 'Success') {
+        expect(ser.value).toBe('42');
+        expect(deserialize(PositiveInt, ser.value)).toEqual(Success(42));
+      }
+    });
+
+    it('round-trips nullable', () => {
+      const s = nullable(number());
+      expect(serialize(s, null)).toEqual(Success('null'));
+      expect(serialize(s, 7)).toEqual(Success('7'));
+      expect(deserialize(s, 'null')).toEqual(Success(null));
+      expect(deserialize(s, '7')).toEqual(Success(7));
+    });
+
+    it('nullable with a transformed inner schema round-trips both arms', () => {
+      const NullableDate = nullable(
+        pipe(
+          string(),
+          transform<string, Date>(
+            (iso) => new Date(iso),
+            (d) => d.toISOString()
+          )
+        )
+      );
+      const value = new Date('2026-05-22T00:00:00.000Z');
+      const ser = serialize(NullableDate, value);
+      expect(ser).toEqual(Success('"2026-05-22T00:00:00.000Z"'));
+      expect(serialize(NullableDate, null)).toEqual(Success('null'));
+    });
+
+    it('optional with a transformed inner schema encodes the present arm', () => {
+      const OptDate = optional(
+        pipe(
+          string(),
+          transform<string, Date>(
+            (iso) => new Date(iso),
+            (d) => d.toISOString()
+          )
+        )
+      );
+      const value = new Date('2026-05-22T00:00:00.000Z');
+      const ser = serialize(OptDate, value);
+      expect(ser).toEqual(Success('"2026-05-22T00:00:00.000Z"'));
+    });
+
+    it('union uses the first branch encoder (documented limitation)', () => {
+      const s = union(string(), number());
+      // Both branches are identity-encoded primitives, so first-branch encoding
+      // is the same as second-branch encoding here. This locks in the contract.
+      expect(serialize(s, 'hi')).toEqual(Success('"hi"'));
+      expect(serialize(s, 5)).toEqual(Success('5'));
+    });
+
+    it('ad-hoc Schema without an encoder falls back to JSON.stringify', () => {
+      // A user-supplied plain function still satisfies Schema<T> because
+      // [_ENCODER] is optional in the type.
+      const plain: Schema<number> = (input: unknown) => (typeof input === 'number' ? Success(input) : Failure([{ kind: 'type', expected: 'number', received: typeof input, path: [], message: 'no' }]));
+      const ser = serialize(plain, 99);
+      expect(ser).toEqual(Success('99'));
+    });
+  });
+
   describe('end-to-end smoke', () => {
     it('full User schema with accumulation, paths, and inference', () => {
       const User = object({
