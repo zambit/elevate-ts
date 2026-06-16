@@ -117,35 +117,65 @@ const dateFromIso = pipe(
   S.string(),
   S.transform<string, Date>(
     (iso) => new Date(iso),
-    (d) => d.toISOString() // optional inverse — see below
+    (d) => d.toISOString() // inverse encoder — enables serialize
   )
 );
 ```
 
-The `encodeFn` argument is **optional**. v1's `serialize` delegates to `JSON.stringify` regardless, so providing an inverse does not yet affect serialization output. The signature is preserved so
-future versions can use it for round-trip-aware serialization without breaking the API.
+The `encodeFn` argument is **optional but recommended**. Schemas built with both halves round-trip through `serialize` / `deserialize`. Schemas built with only `decodeFn` can still decode but cannot
+be serialized — calling `serialize` on one returns `Failure` with a clear "encodeFn is required" message.
 
 ### Serialization
 
 ```typescript
-serialize<T>(schema: Schema<T>, value: T): Validation<Issue, string>     // JSON.stringify
+serialize<T>(schema: Schema<T>, value: T): Validation<Issue, string>     // schema encoder + JSON.stringify
 deserialize<T>(schema: Schema<T>, raw: string): Validation<Issue, T>     // JSON.parse → schema
 ```
 
-For JSON-native types (`string`, `number`, `boolean`, plain objects, arrays), this round-trips cleanly:
+`serialize` walks the schema bottom-up, applying any `transform` encoders before calling `JSON.stringify`. For JSON-native types (`string`, `number`, `boolean`, plain objects, arrays), the encoder is
+identity, so this is equivalent to `JSON.stringify`. For schemas containing `transform(decodeFn, encodeFn)`, the encoder runs first, producing a JSON-native shape that gets stringified.
+
+Round-trip example with a `Date`:
 
 ```typescript
-const ser = S.serialize(User, validUser);
-if (ser.tag === 'Success') {
-  const back = S.deserialize(User, ser.value);
-  // Success(validUser)
-}
+const Event = S.object({
+  name: S.string(),
+  date: dateFromIso
+});
+
+const value = { name: 'launch', date: new Date('2026-05-22T00:00:00.000Z') };
+const ser = S.serialize(Event, value);
+// Success('{"name":"launch","date":"2026-05-22T00:00:00.000Z"}')
+const back = S.deserialize(Event, ser.value);
+// Success({ name: 'launch', date: Date })
 ```
 
-For non-JSON-native types (`Date`, `Map`, `Set`, `BigInt`), you have two choices today:
+`serialize` returns `Failure` for any of:
 
-1. Use `transform` to decode from a JSON-native form on the way in. Encoding on the way out is the caller's responsibility for now (e.g. call `.toISOString()` before `serialize`).
-2. Wait for the v0.7 update that wires `transform`'s `encodeFn` into `serialize`.
+- A `transform` was used without an `encodeFn` and the resulting schema is asked to serialize.
+- `JSON.stringify` rejects the encoded value (cyclic structures, `BigInt` without a transform, etc.).
+- Any encoder in the schema chain throws.
+
+### Union encoding limitation
+
+`union(...schemas)` decoding picks the **first matching branch**. Encoding uses the **first branch's encoder** regardless of which branch the value originated from. This is correct when every branch
+shares the same encoded shape (e.g., `union(string(), literal('foo'))` — all identity) but wrong when branches transform values differently.
+
+If you need branch-aware encoding for a union, wrap the union in a `transform` that owns the discriminator:
+
+```typescript
+type Tagged = { tag: 'a'; v: number } | { tag: 'b'; v: string };
+
+const Tagged: S.Schema<Tagged> = pipe(
+  S.union(S.object({ tag: S.literal('a'), v: S.number() }), S.object({ tag: S.literal('b'), v: S.string() })),
+  S.transform<Tagged, Tagged>(
+    (x) => x, // decode: same shape
+    (x) => x // encode: same shape; tag-aware logic would go here if needed
+  )
+);
+```
+
+The same pattern applies any time encoders diverge per branch.
 
 ### Type inference
 
@@ -176,8 +206,8 @@ Refinements like `minLength` are written as `Schema<T> => Schema<T>` rather than
 
 - **Async schemas** — defer to a future `SchemaAsync.ts` over `EitherAsync` if real demand appears.
 - **Built-in `email()` / `url()` / `uuid()`** — one-liners over `regex`; ship in a follow-up if there's appetite.
-- **Fantasy Land conformance** — `Schema<T>` is a function alias, not a typeclass instance. Nothing to expose.
-- **Round-trip-aware `serialize`** — accepted as `transform(decode, encode?)` API surface but not yet plumbed through `serialize`.
+- **Fantasy Land conformance** — `Schema<T>` is a callable alias, not a typeclass instance. Nothing to expose.
+- **Branch-aware union encoding** — `union` uses the first branch's encoder; users with diverging branches wrap the union in a `transform` (see above).
 
 ## See Also
 
