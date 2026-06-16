@@ -84,7 +84,7 @@ Added a new `describe('serialize / deserialize round-trip with encoders')` block
 
 | Hash    | Message                                                |
 | ------- | ------------------------------------------------------ |
-| 4d2ade6 | feat(schema): wire transform encoder through serialize |
+| b7a8c79 | feat(schema): wire transform encoder through serialize |
 
 ## Testing & Verification
 
