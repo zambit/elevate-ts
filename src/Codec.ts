@@ -20,6 +20,19 @@ import * as Schema from './Schema.js';
  * Decode accepts any string `new Date(s)` can parse and refines to reject
  * `Invalid Date`. Encode produces `d.toISOString()`. Round-trips cleanly via
  * `serialize` / `deserialize`.
+ *
+ * @example
+ * ```ts
+ * import { date } from '@zambit/elevate-ts/Codec';
+ * import { serialize, deserialize } from '@zambit/elevate-ts/Schema';
+ *
+ * date()('2026-05-22T00:00:00.000Z'); // => Success(Date 2026-05-22T00:00:00.000Z)
+ * date()('not-a-date');               // => Failure([{ kind: 'refinement', ... }])
+ *
+ * // Round-trip: decoded Date <-> ISO string on the wire.
+ * const wire = serialize(date(), new Date(0)); // => Success('"1970-01-01T00:00:00.000Z"')
+ * if (wire.tag === 'Success') deserialize(date(), wire.value); // => Success(Date 1970-...)
+ * ```
  */
 export const date = (): Schema.Schema<Date> =>
   pipe(
@@ -41,6 +54,18 @@ const _INT_RE = /^-?\d+$/;
  * JSON cannot represent `bigint` natively; the on-wire form is a decimal
  * string. The decoder pre-validates with a regex so the underlying
  * `BigInt(s)` call never throws.
+ *
+ * @example
+ * ```ts
+ * import { bigint } from '@zambit/elevate-ts/Codec';
+ * import { serialize, deserialize } from '@zambit/elevate-ts/Schema';
+ *
+ * bigint()('99999999999999999'); // => Success(99999999999999999n) — exact past MAX_SAFE_INTEGER
+ * bigint()('3.14');              // => Failure (not a base-10 integer string)
+ *
+ * const wire = serialize(bigint(), 42n); // => Success('"42"')
+ * if (wire.tag === 'Success') deserialize(bigint(), wire.value); // => Success(42n)
+ * ```
  */
 export const bigint = (): Schema.Schema<bigint> =>
   pipe(
@@ -60,6 +85,18 @@ export const bigint = (): Schema.Schema<bigint> =>
  * Decode validates via `URL.canParse` (available in Workers, Node 19+, modern
  * browsers) before constructing, so the underlying `new URL(s)` never throws.
  * Encode is `u.toString()`.
+ *
+ * @example
+ * ```ts
+ * import { url } from '@zambit/elevate-ts/Codec';
+ * import { serialize } from '@zambit/elevate-ts/Schema';
+ *
+ * const r = url()('https://example.com/path?q=1'); // => Success(URL)
+ * if (r.tag === 'Success') r.value.host;            // => 'example.com'
+ * url()('not a url');                               // => Failure (not a valid URL)
+ *
+ * serialize(url(), new URL('https://example.com')); // => Success('"https://example.com/"')
+ * ```
  */
 export const url = (): Schema.Schema<URL> =>
   pipe(
@@ -80,6 +117,19 @@ export const url = (): Schema.Schema<URL> =>
  * encoder runs over each element first (so `set(date())` round-trips Dates).
  * Duplicates in the on-wire array collapse to a single Set entry; that is
  * the intended behavior of `new Set(array)`.
+ *
+ * @example
+ * ```ts
+ * import { set, date } from '@zambit/elevate-ts/Codec';
+ * import { string, serialize, deserialize } from '@zambit/elevate-ts/Schema';
+ *
+ * set(string())(['a', 'b', 'b']); // => Success(Set {'a', 'b'}) — duplicates collapse
+ *
+ * // The inner codec encodes each element, so a Set of Dates round-trips.
+ * const tags = set(date());
+ * const wire = serialize(tags, new Set([new Date(0)])); // => Success('["1970-01-01T00:00:00.000Z"]')
+ * if (wire.tag === 'Success') deserialize(tags, wire.value); // => Success(Set { Date 1970-... })
+ * ```
  */
 export const set = <T>(item: Schema.Schema<T>): Schema.Schema<ReadonlySet<T>> =>
   pipe(
@@ -114,6 +164,19 @@ const _base64ToBytes = (s: string): Uint8Array => {
  * `atob`, so the underlying decode never throws. Useful for transporting
  * binary payloads through JSON (Workers KV/R2 blobs, signed-blob payloads,
  * etc.).
+ *
+ * @example
+ * ```ts
+ * import { base64Bytes } from '@zambit/elevate-ts/Codec';
+ * import { serialize, deserialize } from '@zambit/elevate-ts/Schema';
+ *
+ * base64Bytes()('aGVsbG8='); // => Success(Uint8Array [104,101,108,108,111]) — 'hello'
+ * base64Bytes()('YQ=');      // => Failure (length not a multiple of 4)
+ *
+ * const bytes = new Uint8Array([0, 255]);
+ * const wire = serialize(base64Bytes(), bytes); // => Success('"AP8="')
+ * if (wire.tag === 'Success') deserialize(base64Bytes(), wire.value); // => Success(Uint8Array [0,255])
+ * ```
  */
 export const base64Bytes = (): Schema.Schema<Uint8Array> =>
   pipe(
