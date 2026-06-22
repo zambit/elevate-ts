@@ -27,6 +27,7 @@ export default defineConfig({
       exclude: [
         'scripts/**',
         'locals/tokens/**',
+        'tests/.doctest/**',
         'src/index.ts',
         "**/*Proto'fantasy-land" // Fantasy Land protocol implementation details
       ],

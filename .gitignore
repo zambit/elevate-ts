@@ -3,6 +3,9 @@ dist
 coverage
 .wrangler
 
+# Generated doctest example files (see tests/doctest.test.ts)
+tests/.doctest/
+
 # Local npm registry override (not for distribution)
 .npmrc
 
