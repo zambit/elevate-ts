@@ -104,6 +104,11 @@
       "import": "./dist/esm/Schema.js",
       "require": "./dist/cjs/Schema.js",
       "types": "./dist/esm/Schema.d.ts"
+    },
+    "./Codec": {
+      "import": "./dist/esm/Codec.js",
+      "require": "./dist/cjs/Codec.js",
+      "types": "./dist/esm/Codec.d.ts"
     }
   },
   "scripts": {
