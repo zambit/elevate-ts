@@ -7,6 +7,8 @@ describe('Codec', () => {
   describe('date', () => {
     const d = date();
 
+    // Decode is deliberately permissive (anything `new Date()` parses), but the
+    // refinement + ISO encoder mean a successful round-trip is always strict ISO-8601.
     it('decodes a valid ISO string to a Date', () => {
       const r = d('2026-05-22T00:00:00.000Z');
       expect(isSuccess(r)).toBe(true);
@@ -45,6 +47,8 @@ describe('Codec', () => {
   describe('bigint', () => {
     const b = bigint();
 
+    // The point of bigint over number: values past Number.MAX_SAFE_INTEGER survive
+    // the wire round-trip exactly, because the on-wire form is a decimal string.
     it('decodes a valid integer string', () => {
       const r = b('42');
       expect(isSuccess(r)).toBe(true);
@@ -131,6 +135,8 @@ describe('Codec', () => {
   });
 
   describe('set', () => {
+    // Duplicates in the on-wire array collapse to one entry — this is `new Set(array)`
+    // behavior, not an error, so a 4-element array can decode to a 3-element Set.
     it('decodes an array of strings into a Set (dedupes duplicates)', () => {
       const s = set(string());
       const r = s(['a', 'b', 'b', 'c']);
@@ -191,6 +197,8 @@ describe('Codec', () => {
       if (r.tag === 'Failure') expect(r.errors[0]!.message).toBe('Expected base64-encoded string');
     });
 
+    // Length-mod-4 and alphabet are checked in the refinement, before `atob` is
+    // ever called — so malformed input fails cleanly instead of throwing.
     it('rejects strings whose length is not a multiple of 4', () => {
       expect(isFailure(b('YQ='))).toBe(true); // length 3
     });
