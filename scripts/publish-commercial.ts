@@ -67,10 +67,11 @@ function publishCommercial(): void {
     console.log('✓ License file swapped');
 
     // Publish
-    console.log('🚀 Publishing to npm with commercial tag...');
-    execSync('npm publish --tag commercial --provenance', { stdio: 'inherit' });
+    console.log('🚀 Staging on npm with commercial tag...');
+    // Staged: not live until a maintainer runs `npm stage approve <id>` with 2FA.
+    execSync('npm stage publish --tag commercial --provenance', { stdio: 'inherit' });
 
-    console.log('✅ Commercial version published!');
+    console.log('✅ Commercial version staged. Approve it with npm stage approve <id>.');
   } catch (error) {
     console.error('❌ Error during publish:', error instanceof Error ? error.message : String(error));
     process.exit(1);

@@ -12,12 +12,15 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     name: Publish to npm
-    # NPM_TOKEN lives on the `prod` GitHub environment, not as a repo-level
-    # secret. Declaring the environment here is what makes secrets.NPM_TOKEN
-    # resolve. Also creates a deployment record per release for audit.
+    # npm authenticates this job via trusted publishing (OIDC), which is bound
+    # to this workflow file and the `prod` environment. Renaming either breaks
+    # publishing until the trusted publisher on npmjs.com is updated. The
+    # environment also creates a deployment record per release for audit.
     environment: prod
     permissions:
-      contents: read
+      # write: the Create GitHub Release step needs it (read-only caused a 403 on 0.8.0).
+      contents: write
+      # OIDC token for npm trusted publishing and provenance.
       id-token: write
 
     steps:
@@ -42,6 +45,11 @@ jobs:
       - name: Run tests
         run: pnpm test
 
+      # Pack exactly as npm would, install the tarball into a throwaway project,
+      # and load every subpath export under ESM and CJS. Fails before staging.
+      - name: Smoke-test the packed package
+        run: pnpm smoke:package
+
       - name: Determine license (AGPL vs Commercial)
         id: license
         run: |
@@ -54,23 +62,23 @@ jobs:
 
       - name: Publish AGPL version
         if: steps.license.outputs.type == 'agpl'
+        # Stages the release; it is NOT live until a maintainer runs
+        # `npm stage approve <id>` with 2FA. See docs/TESTING_STAGED_RELEASES.md.
+        # Authenticates via npm trusted publishing (OIDC); no token needed.
         # No explicit --tag — npm defaults to `latest`, so the npmjs.com page
         # and plain `npm install @zambit/elevate-ts` track each release.
-        run: npm publish --provenance
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm stage publish --provenance
 
       - name: Publish Commercial version
         if: steps.license.outputs.type == 'commercial'
         run: pnpm exec tsx scripts/publish-commercial.ts
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v3
         with:
           files: dist/**
-          draft: false
+          # Draft until the staged npm release is approved; publish it by hand afterwards.
+          draft: true
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
