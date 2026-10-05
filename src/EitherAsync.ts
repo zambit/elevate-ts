@@ -1,11 +1,14 @@
 // EitherAsync — Lazy Async Either
 
 import * as Either from './Either.js';
+import * as Maybe from './Maybe.js';
 import type * as MaybeAsyncModule from './MaybeAsync.js';
 
 /**
  * Lazy async Either: wraps Promise<Either<L, R>>.
- * Critical: Rejected Promises and thrown exceptions become Left; never throws or rejects.
+ * Exception contract: throws are captured as Left only where you supply an error
+ * mapper — tryCatch, fromPromise, tryMap, tryChain. A callback passed to a plain
+ * operator (map, chain, ...) must not throw; if it does, run() rejects.
  */
 export type EitherAsync<L, R> = {
   readonly tag: 'EitherAsync';
@@ -81,7 +84,8 @@ export const tryCatch = <L, R>(f: () => Promise<R>, onError: (e: unknown) => L):
 
 /**
  * Functor map over the Right value.
- * Rejected Promises and thrown exceptions become Left; never throws or rejects.
+ * Does not catch: if a callback throws, run() rejects (a caller bug, as in fp-ts).
+ * Use tryMap / tryChain, or tryCatch, to capture throws as Left.
  * @param f - Function to transform the Right value.
  * @returns A function taking EitherAsync and returning a new EitherAsync.
  */
@@ -92,7 +96,8 @@ export const map =
 
 /**
  * Map over the Left value.
- * Rejected Promises and thrown exceptions become Left; never throws or rejects.
+ * Does not catch: if a callback throws, run() rejects (a caller bug, as in fp-ts).
+ * Use tryMap / tryChain, or tryCatch, to capture throws as Left.
  * @param f - Function to transform the Left value.
  * @returns A function taking EitherAsync and returning a new EitherAsync.
  */
@@ -103,7 +108,8 @@ export const mapLeft =
 
 /**
  * Bifunctor bimap: map over both Left and Right.
- * Rejected Promises and thrown exceptions become Left; never throws or rejects.
+ * Does not catch: if a callback throws, run() rejects (a caller bug, as in fp-ts).
+ * Use tryMap / tryChain, or tryCatch, to capture throws as Left.
  * @param f - Function to transform Left.
  * @param g - Function to transform Right.
  * @returns A function taking EitherAsync and returning a new EitherAsync.
@@ -115,7 +121,8 @@ export const bimap =
 
 /**
  * Monadic bind: sequentially compose EitherAsync computations.
- * Rejected Promises and thrown exceptions become Left; never throws or rejects.
+ * Does not catch: if a callback throws, run() rejects (a caller bug, as in fp-ts).
+ * Use tryMap / tryChain, or tryCatch, to capture throws as Left.
  * @param f - Function that returns an EitherAsync.
  * @returns A function taking EitherAsync and returning a flattened EitherAsync.
  */
@@ -131,8 +138,33 @@ export const chain =
     });
 
 /**
+ * Map over the Right value, capturing a throw in `f` as Left.
+ * Use instead of map when `f` may throw (parsing, third-party code).
+ * @param f - Function to transform the Right value; may throw.
+ * @param onError - Maps a thrown value to a Left.
+ * @returns A function taking EitherAsync and returning a new EitherAsync.
+ */
+export const tryMap =
+  <L, A, B>(f: (a: A) => B, onError: (e: unknown) => L): ((ea: EitherAsync<L, A>) => EitherAsync<L, B>) =>
+  (ea) =>
+    chain<L, A, B>((a) => liftEither(Either.tryCatch(() => f(a), onError)))(ea);
+
+/**
+ * Monadic bind that captures failures of `f` as Left: a synchronous throw, or a
+ * rejection of the computation it returns. An inner Left is kept as-is.
+ * @param f - Function returning an EitherAsync; may throw or reject.
+ * @param onError - Maps a thrown or rejected value to a Left.
+ * @returns A function taking EitherAsync and returning a flattened EitherAsync.
+ */
+export const tryChain =
+  <L, A, B>(f: (a: A) => EitherAsync<L, B>, onError: (e: unknown) => L): ((ea: EitherAsync<L, A>) => EitherAsync<L, B>) =>
+  (ea) =>
+    chain<L, A, B>((a) => chain<L, Either.Either<L, B>, B>(liftEither)(tryCatch(() => f(a).run(), onError)))(ea);
+
+/**
  * Chain over the Left value.
- * Rejected Promises and thrown exceptions become Left; never throws or rejects.
+ * Does not catch: if a callback throws, run() rejects (a caller bug, as in fp-ts).
+ * Use tryMap / tryChain, or tryCatch, to capture throws as Left.
  * @param f - Function that returns an EitherAsync.
  * @returns A function taking EitherAsync and returning a new EitherAsync.
  */
@@ -149,7 +181,8 @@ export const chainLeft =
 
 /**
  * Applicative ap: apply an EitherAsync function to an EitherAsync value.
- * Rejected Promises and thrown exceptions become Left; never throws or rejects.
+ * Does not catch: if a callback throws, run() rejects (a caller bug, as in fp-ts).
+ * Use tryMap / tryChain, or tryCatch, to capture throws as Left.
  * @param ef - An EitherAsync of a function.
  * @returns A function taking EitherAsync and returning a new EitherAsync.
  */
@@ -163,7 +196,7 @@ export const ap =
 
 /**
  * Extract the Right value or provide a default.
- * Rejected Promises and thrown exceptions become Left; never throws or rejects.
+ * Adds no rejection of its own; a rejection from an input propagates.
  * @param r - The default value.
  * @returns A function taking EitherAsync and returning a Promise of the value.
  */
@@ -174,7 +207,8 @@ export const getOrElse =
 
 /**
  * Extract the Right value or compute from Left.
- * Rejected Promises and thrown exceptions become Left; never throws or rejects.
+ * Does not catch: if a callback throws, run() rejects (a caller bug, as in fp-ts).
+ * Use tryMap / tryChain, or tryCatch, to capture throws as Left.
  * @param f - Function computing the default from Left.
  * @returns A function taking EitherAsync and returning a Promise of the value.
  */
@@ -188,7 +222,8 @@ export const getOrElseL =
 
 /**
  * Case analysis on EitherAsync.
- * Rejected Promises and thrown exceptions become Left; never throws or rejects.
+ * Does not catch: if a callback throws, run() rejects (a caller bug, as in fp-ts).
+ * Use tryMap / tryChain, or tryCatch, to capture throws as Left.
  * @param onLeft - Function for Left.
  * @param onRight - Function for Right.
  * @returns A function taking EitherAsync and returning Promise of result.
@@ -200,7 +235,7 @@ export const fold =
 
 /**
  * Swap Left and Right.
- * Rejected Promises and thrown exceptions become Left; never throws or rejects.
+ * Adds no rejection of its own; a rejection from an input propagates.
  * @param ea - The EitherAsync to swap.
  * @returns A new EitherAsync with Left and Right swapped.
  */
@@ -208,25 +243,25 @@ export const swap = <L, R>(ea: EitherAsync<L, R>): EitherAsync<R, L> => EitherAs
 
 /**
  * Convert EitherAsync to MaybeAsync, discarding Left.
- * Rejected Promises and thrown exceptions become Left which becomes Nothing; never throws or rejects.
+ * Left and a rejecting source both become Nothing; never rejects.
  * @param ea - The EitherAsync to convert.
  * @returns A MaybeAsync that ignores the Left value.
  */
-export const toMaybeAsync = <L, R>(ea: EitherAsync<L, R>): MaybeAsyncModule.MaybeAsync<R> => {
-  // Dynamic import to avoid circular dependencies
-  return {
+export const toMaybeAsync = <L, R>(ea: EitherAsync<L, R>): MaybeAsyncModule.MaybeAsync<R> =>
+  // Built inline (not via MaybeAsync's constructor) to avoid a runtime import cycle;
+  // only the type is imported from MaybeAsync.
+  ({
     tag: 'MaybeAsync',
-    run: async () => {
-      const either = await ea.run();
-      const Maybe = await import('./Maybe.js');
-      return either.tag === 'Right' ? (Maybe.Just(either.right) as unknown) : (Maybe.Nothing as unknown);
-    }
-  } as unknown as MaybeAsyncModule.MaybeAsync<R>;
-};
+    run: () =>
+      ea.run().then(
+        (either): Maybe.Maybe<R> => (either.tag === 'Right' ? Maybe.Just(either.right) : Maybe.Nothing),
+        (): Maybe.Maybe<R> => Maybe.Nothing
+      )
+  }) as MaybeAsyncModule.MaybeAsync<R>;
 
 /**
  * All-or-Left: if any EitherAsync is Left, result is Left with the first error.
- * Rejected Promises and thrown exceptions become Left; never throws or rejects.
+ * Adds no rejection of its own; a rejection from an input propagates.
  * @param eas - Array of EitherAsync.
  * @returns An EitherAsync that is Right of array if all are Right, else the first Left.
  */
@@ -243,7 +278,7 @@ export const all = <L, R>(eas: readonly EitherAsync<L, R>[]): EitherAsync<L, rea
 
 /**
  * Extract all Left values from an array of EitherAsync.
- * Rejected Promises and thrown exceptions become Left; never throws or rejects.
+ * Adds no rejection of its own; a rejection from an input propagates.
  * @param eas - Array of EitherAsync.
  * @returns Promise of collected Left values.
  */
@@ -252,7 +287,7 @@ export const lefts = <L, R>(eas: readonly EitherAsync<L, R>[]): Promise<readonly
 
 /**
  * Extract all Right values from an array of EitherAsync.
- * Rejected Promises and thrown exceptions become Left; never throws or rejects.
+ * Adds no rejection of its own; a rejection from an input propagates.
  * @param eas - Array of EitherAsync.
  * @returns Promise of collected Right values.
  */

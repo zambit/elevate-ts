@@ -262,9 +262,9 @@ export const curry4 =
 export const memoize = <A, B>(f: (a: A) => B): ((a: A) => B) => {
   const cache = new Map<A, B>();
   return (a: A) => {
-    const cached = cache.get(a);
-    if (cached !== undefined) {
-      return cached;
+    // has(), not get() !== undefined: a cached undefined result is still a hit.
+    if (cache.has(a)) {
+      return cache.get(a) as B;
     }
     const result = f(a);
     cache.set(a, result);

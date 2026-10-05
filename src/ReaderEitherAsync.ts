@@ -12,6 +12,10 @@ import * as Reader from './Reader.js';
 /**
  * Lazy async Either parameterized by an environment R.
  * Equivalent semantics to EitherAsync<L, A> but takes an env on run.
+ * Exception contract (same as EitherAsync): throws are captured as Left only where
+ * you supply an error mapper — tryCatch, fromPromise, tryMap, tryChain. A callback
+ * passed to a plain operator (map, chain, asks, local, ...) must not throw; if it
+ * does, run() rejects.
  */
 export type ReaderEitherAsync<R, L, A> = {
   readonly tag: 'ReaderEitherAsync';
@@ -115,6 +119,27 @@ export const chain =
     ReaderEitherAsync(async (env) => {
       const either = await rea.run(env);
       return either.tag === 'Right' ? f(either.right).run(env) : either;
+    });
+
+/** Map over the Right value, capturing a throw in `f` as Left via `onError`. */
+export const tryMap =
+  <A, B, L>(f: (a: A) => B, onError: (e: unknown) => L): (<R>(rea: ReaderEitherAsync<R, L, A>) => ReaderEitherAsync<R, L, B>) =>
+  <R>(rea: ReaderEitherAsync<R, L, A>): ReaderEitherAsync<R, L, B> =>
+    ReaderEitherAsync((env: R) => rea.run(env).then((either): Either.Either<L, B> => (either.tag === 'Left' ? either : Either.tryCatch(() => f(either.right), onError))));
+
+/**
+ * Monadic bind that captures failures of `f` as Left via `onError`: a synchronous
+ * throw, or a rejection of the computation it returns. An inner Left is kept as-is.
+ */
+export const tryChain =
+  <R, L, A, B>(f: (a: A) => ReaderEitherAsync<R, L, B>, onError: (e: unknown) => L): ((rea: ReaderEitherAsync<R, L, A>) => ReaderEitherAsync<R, L, B>) =>
+  (rea) =>
+    ReaderEitherAsync(async (env) => {
+      const either = await rea.run(env);
+      if (either.tag === 'Left') return either;
+      return Promise.resolve()
+        .then(() => f(either.right).run(env))
+        .catch((e): Either.Either<L, B> => Either.Left(onError(e)));
     });
 
 /** Chain over the Left value (recovery). */

@@ -23,7 +23,10 @@ export type CancellableResult<L, R> = Either.Either<L, R> | Cancelled;
 /**
  * Lazy async Either with cooperative cancellation. run() accepts an optional
  * AbortSignal; underlying I/O is expected to forward it to short-circuit on abort.
- * Never throws or rejects: aborts become Cancelled, exceptions become Left.
+ * Exception contract: aborts become Cancelled, and throws are captured as Left
+ * where you supply an error mapper (tryCatch, fromPromise, fromAbortable, tryMap,
+ * tryChain). A callback passed to a plain operator (map, chain, ...) must not
+ * throw; if it does, run() rejects.
  */
 export type CancellableEitherAsync<L, R> = {
   readonly tag: 'CancellableEitherAsync';
@@ -152,6 +155,31 @@ export const chain =
       const r = await cea.run(signal);
       if (r.tag !== 'Right') return r;
       return f(r.right).run(signal);
+    });
+
+/** Map over the Right value, capturing a throw in `f` as Left via `onError`. Left and Cancelled pass through. */
+export const tryMap =
+  <L, A, B>(f: (a: A) => B, onError: (e: unknown) => L): ((cea: CancellableEitherAsync<L, A>) => CancellableEitherAsync<L, B>) =>
+  (cea) =>
+    CancellableEitherAsync(async (signal) => {
+      const r = await cea.run(signal);
+      return r.tag === 'Right' ? Either.tryCatch(() => f(r.right), onError) : r;
+    });
+
+/**
+ * Monadic bind that captures failures of `f`: a synchronous throw, or a rejection of
+ * the computation it returns. An AbortError becomes Cancelled; anything else becomes
+ * Left via `onError`. The signal is forwarded. Left and Cancelled pass through.
+ */
+export const tryChain =
+  <L, A, B>(f: (a: A) => CancellableEitherAsync<L, B>, onError: (e: unknown) => L): ((cea: CancellableEitherAsync<L, A>) => CancellableEitherAsync<L, B>) =>
+  (cea) =>
+    CancellableEitherAsync(async (signal) => {
+      const r = await cea.run(signal);
+      if (r.tag !== 'Right') return r;
+      return Promise.resolve()
+        .then(() => f(r.right).run(signal))
+        .catch((e): CancellableResult<L, B> => (isAbortError(e) ? Cancelled(e) : Either.Left(onError(e))));
     });
 
 /**
