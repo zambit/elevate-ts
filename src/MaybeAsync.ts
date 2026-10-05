@@ -1,11 +1,16 @@
 // MaybeAsync — Lazy Async Maybe
 
+import * as Either from './Either.js';
 import type * as EitherAsyncModule from './EitherAsync.js';
 import * as Maybe from './Maybe.js';
 
 /**
  * Lazy async Maybe: wraps Promise<Maybe<A>>.
  * Critical: Any rejected Promise or thrown error becomes Nothing; never rejects.
+ * The constructor enforces this, so every operator built on it (map, chain, ap,
+ * alt, filter, all, ...) inherits it, including when a callback throws.
+ * Only the eliminators that return a plain Promise (getOrElseL, fold) can reject,
+ * and only if the callback you pass them rejects.
  */
 export type MaybeAsync<A> = {
   readonly tag: 'MaybeAsync';
@@ -14,10 +19,17 @@ export type MaybeAsync<A> = {
 
 /**
  * Construct a MaybeAsync from a lazy computation.
+ * If `run` throws or its Promise rejects, the result is Nothing; never rejects.
  * @param run - A function returning Promise<Maybe<A>>.
  * @returns A MaybeAsync that encapsulates the computation.
  */
-export const MaybeAsync = <A>(run: () => Promise<Maybe.Maybe<A>>): MaybeAsync<A> => ({ tag: 'MaybeAsync', run });
+export const MaybeAsync = <A>(run: () => Promise<Maybe.Maybe<A>>): MaybeAsync<A> => ({
+  tag: 'MaybeAsync',
+  run: () =>
+    Promise.resolve()
+      .then(run)
+      .catch((): Maybe.Maybe<A> => Maybe.Nothing)
+});
 
 /**
  * Lift a synchronous Maybe into MaybeAsync.
@@ -144,7 +156,7 @@ export const getOrElse =
 
 /**
  * Extract the value or compute a default lazily.
- * Any rejected Promise or thrown error becomes Nothing; never rejects.
+ * The source never rejects; the returned Promise rejects only if `f` does.
  * @param f - A function computing the default.
  * @returns A function taking MaybeAsync and returning a Promise of the value.
  */
@@ -164,21 +176,21 @@ export const getOrElseL =
  */
 export const toEitherAsync =
   <E, A>(onNothing: E): ((ma: MaybeAsync<A>) => EitherAsyncModule.EitherAsync<E, A>) =>
-  (ma) => {
-    // Dynamic import to avoid circular dependencies
-    return {
+  (ma) =>
+    // Built inline (not via EitherAsync's constructor) to avoid a runtime import cycle;
+    // only the type is imported from EitherAsync.
+    ({
       tag: 'EitherAsync',
-      run: async () => {
-        const maybe = await ma.run();
-        const Either = (await import('./Either.js')) as typeof import('./Either.js');
-        return maybe.tag === 'Just' ? Either.Right(maybe.value) : Either.Left(onNothing);
-      }
-    } as EitherAsyncModule.EitherAsync<E, A>;
-  };
+      run: () =>
+        ma.run().then(
+          (maybe): Either.Either<E, A> => (maybe.tag === 'Just' ? Either.Right(maybe.value) : Either.Left(onNothing)),
+          (): Either.Either<E, A> => Either.Left(onNothing)
+        )
+    }) as EitherAsyncModule.EitherAsync<E, A>;
 
 /**
  * Case analysis on MaybeAsync.
- * Any rejected Promise or thrown error becomes Nothing; never rejects.
+ * The source never rejects; the returned Promise rejects only if `onJust` does.
  * @param onNothing - Value for Nothing.
  * @param onJust - Function for Just value.
  * @returns A function taking MaybeAsync and returning Promise of result.
