@@ -150,6 +150,65 @@ pnpm lint-staged
 
 ---
 
+## Exceptions in the Async Types (2026-10-05)
+
+**Decision:** `MaybeAsync` never rejects. The `Either`-based async types (`EitherAsync`, `ReaderEitherAsync`, `CancellableEitherAsync`) capture throws as `Left` only where the caller supplies an error
+mapper: `tryCatch`, `fromPromise`, and the new `tryMap` / `tryChain`. A throw inside a plain `map` / `chain` callback is a caller bug, and `run()` rejects.
+
+**Context:** An external review ([FP_REVIEW.md](./FP_REVIEW.md)) found that every async operator's docstring promised "thrown exceptions become Left; never throws or rejects", but `map`, `chain` and
+friends did not catch: a throwing callback made `run()` reject. The docstrings described a contract the code did not keep.
+
+**Alternatives Considered:**
+
+1. **Catch everywhere.** For `EitherAsync<L, R>` there is no way to turn an unknown thrown value into an `L` without a mapper. It would mean widening every error type to `L | unknown` or similar,
+   breaking every caller.
+2. **Require `onError` on every operator.** Honest, but makes the common case (callbacks that cannot throw) noisy and breaks the existing API.
+3. **Narrow the docs only.** Smallest change, but leaves no ergonomic way to capture throws mid-pipeline.
+
+**Decision:** A hybrid.
+
+- `MaybeAsync` can catch without a mapper, because a failure simply becomes `Nothing`. Its constructor now converts any throw or rejection into `Nothing`, so every operator built on it inherits the
+  guarantee. Only `getOrElseL` and `fold`, which return the caller's own Promise, can reject, and only if that callback does.
+- The `Either`-based types keep plain operators fast and uncaught (the fp-ts convention), add `tryMap(f, onError)` and `tryChain(f, onError)` for callbacks that may throw, and state the contract
+  accurately in every docstring.
+- `tests/NeverThrows.test.ts` pins the contract for every operator, including the documented rejections, so it cannot drift again.
+
+**Why This Matters:** The "no try/catch around pipelines" promise is the library's most valuable semantic guarantee. It is now true where it is claimed, and the places that need an error mapper say
+so.
+
+---
+
+## Two Pair Shapes: Array Tuples and Tuple (2026-10-05)
+
+**Decision:** Array tuples (`readonly [A, B]`) are the default pair. `Tuple<A, B>` (`{ fst, snd }`) is for named fields and Functor/Bifunctor operations.
+
+**Context:** `State.run` returns `readonly [A, S]` while `Tuple` is an object. Readers moving between the two modules were briefly confused about which is canonical.
+
+**Alternatives Considered:**
+
+1. **Move `State` to `Tuple`.** One shape everywhere, but breaks every `State` caller and loses natural destructuring (`const [a, s] = ...`).
+2. **Drop `Tuple`.** Loses named accessors and the Fantasy Land Functor/Bifunctor instance.
+
+**Decision:** Keep both and document the roles in `Tuple.ts`, `State.ts` and [API.md](./API.md#pairs). Converting at a boundary is a one-liner.
+
+**Why This Matters:** No breaking change, and the choice is now written down where readers meet it.
+
+---
+
+## `fold` Shapes Follow the Data (2026-10-05)
+
+**Decision:** Keep each module's `fold` shaped by what its branches carry, and document the shapes side by side ([API.md](./API.md#fold-shapes)).
+
+**Context:** `Maybe.fold` takes `onNothing: B` (a value) while `Either.fold` takes two functions. A reviewer briefly wrote `() => B` for `onNothing`.
+
+**Alternatives Considered:** Normalize every `fold` to take functions (a `() => B` thunk for `Nothing`). Symmetric, but breaks every `Maybe.fold` caller to add ceremony for a branch with no data.
+
+**Decision:** `Nothing` carries no payload, so `onNothing` stays a value. The variation is principled; the fix is making it visible in one table.
+
+**Why This Matters:** No breaking change; the mental model is "each branch receives what that case holds".
+
+---
+
 ## Future Decisions
 
 Add new decisions as they arise. Format:

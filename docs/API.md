@@ -6,6 +6,41 @@ Complete API documentation for all elevate-ts modules. Each module is exported w
 
 ---
 
+## Conventions Across Modules
+
+### Exceptions in the async types
+
+| Type                     | A throw or rejection inside a callback                                                                                       |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------- |
+| `MaybeAsync`             | Always becomes `Nothing`. `run()` never rejects.                                                                             |
+| `EitherAsync`            | Becomes `Left` only where you supply an error mapper: `tryCatch`, `fromPromise`, `tryMap`, `tryChain`. Elsewhere it rejects. |
+| `ReaderEitherAsync`      | Same as `EitherAsync`.                                                                                                       |
+| `CancellableEitherAsync` | Same as `EitherAsync`, and an `AbortError` becomes `Cancelled`.                                                              |
+
+For the `Either`-based types, a callback passed to a plain operator (`map`, `chain`, ...) must not throw. When it might (parsing, third-party code), use `tryMap` / `tryChain` and say how the error
+maps to `Left`. See [DESIGN_DECISIONS.md](./DESIGN_DECISIONS.md#exceptions-in-the-async-types-2026-10-05).
+
+### `fold` shapes
+
+Every `fold` is data-last case analysis, but the arguments differ with what each branch carries:
+
+| Module                   | Signature                                                           | Note                                                                |
+| ------------------------ | ------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| `Maybe`                  | `fold(onNothing: B, onJust: (a) => B)(ma)`                          | `onNothing` is a **value**, not a function: Nothing carries no data |
+| `MaybeAsync`             | `fold(onNothing: B, onJust: (a) => Promise<B>)(ma)`                 | Same as `Maybe`; resolves to a Promise                              |
+| `Either`                 | `fold(onLeft: (l) => B, onRight: (r) => B)(ea)`                     | Both branches are functions                                         |
+| `EitherAsync`            | `fold(onLeft: (l) => Promise<B>, onRight: (r) => Promise<B>)(ea)`   | Both branches return Promises                                       |
+| `Validation`             | `fold(onFailure: (es: readonly E[]) => B, onSuccess: (a) => B)(va)` | `onFailure` receives **all** accumulated errors                     |
+| `ReaderEitherAsync`      | `fold(onLeft, onRight)(rea)(env)`                                   | Extra step: supply the env to run                                   |
+| `CancellableEitherAsync` | `fold(onLeft, onRight, onCancelled)(cea)(signal?)`                  | Third branch for `Cancelled`; optional signal to run                |
+
+### Pairs
+
+The library has two pair shapes. Array tuples, `readonly [A, B]`, are the default: `State.run` returns `readonly [A, S]` and destructures naturally. `Tuple<A, B>` (`{ fst, snd }`) is for when you want
+named fields or the `Tuple` operations and Functor/Bifunctor instances (`mapFst`, `mapSnd`, `bimap`, `fanout`). Convert at the boundary when you need one from the other.
+
+---
+
 ## Maybe — Optional Values
 
 Optional value container: present (`Just<A>`) or absent (`Nothing`).
@@ -184,7 +219,7 @@ Deferred computation with environment access: `(env: R) => A`.
 
 ## State — Stateful Computation
 
-Pure stateful computation: `(state: S) => [value: A, nextState: S]`.
+Pure stateful computation: `(state: S) => [value: A, nextState: S]`. Results are array tuples, the library's default pair shape (see [Pairs](#pairs)).
 
 ### Types
 
@@ -214,7 +249,8 @@ Pure stateful computation: `(state: S) => [value: A, nextState: S]`.
 
 ## Tuple — Immutable 2-Tuple
 
-Pair of values with bifunctor operations.
+Pair of values with bifunctor operations. Use it when you want named fields (`fst`, `snd`) or the Functor/Bifunctor instances; array tuples (`readonly [A, B]`) are the default pair elsewhere, for
+example in `State` (see [Pairs](#pairs)).
 
 ### Types
 
@@ -346,7 +382,7 @@ Functional composition and utility functions.
 
 ### Memoization & Side Effects
 
-- **`memoize(f: (a: A) => B): (a: A) => B`** — Memoize with single-level cache
+- **`memoize(f: (a: A) => B): (a: A) => B`** — Memoize with single-level cache (keys compared with `Map` semantics; `undefined` results are cached too)
 - **`once(f: () => A): () => A`** — Execute at most once; cache the result
 - **`tap(f: (a: A) => void): (a: A) => A`** — Execute side effect and pass value through
 
@@ -354,7 +390,8 @@ Functional composition and utility functions.
 
 ## MaybeAsync — Lazy Async Maybe
 
-Optional value wrapped in a lazy Promise. Any rejection becomes `Nothing`; never rejects.
+Optional value wrapped in a lazy Promise. Any rejection or throw, including one inside a callback passed to `map`, `chain`, `filter`, and so on, becomes `Nothing`; `run()` never rejects. Only
+`getOrElseL` and `fold`, which return a plain Promise, can reject, and only if the callback you pass them does.
 
 ### Types
 
@@ -406,7 +443,8 @@ Optional value wrapped in a lazy Promise. Any rejection becomes `Nothing`; never
 
 ## EitherAsync — Lazy Async Either
 
-Result with error branch wrapped in a lazy Promise. Rejections become `Left`; never rejects.
+Result with error branch wrapped in a lazy Promise. Throws and rejections become `Left` where you supply an error mapper (`tryCatch`, `fromPromise`, `tryMap`, `tryChain`). A callback passed to a plain
+operator such as `map` or `chain` must not throw; if it does, `run()` rejects.
 
 ### Types
 
@@ -432,6 +470,9 @@ Result with error branch wrapped in a lazy Promise. Rejections become `Left`; ne
 - **`bimap(f: (l: L) => L2, g: (a: A) => B): (ea: EitherAsync<L, A>) => EitherAsync<L2, B>`** — Bifunctor map
 - **`chain(f: (a: A) => EitherAsync<L, B>): (ea: EitherAsync<L, A>) => EitherAsync<L, B>`** — Monadic bind
 - **`chainLeft(f: (l: L) => EitherAsync<L2, R>): (ea: EitherAsync<L, R>) => EitherAsync<L2, R>`** — Chain over Left
+- **`tryMap(f: (a: A) => B, onError: (e: unknown) => L): (ea: EitherAsync<L, A>) => EitherAsync<L, B>`** — Map over Right; a throw in `f` becomes `Left(onError(e))`
+- **`tryChain(f: (a: A) => EitherAsync<L, B>, onError: (e: unknown) => L): (ea: EitherAsync<L, A>) => EitherAsync<L, B>`** — Monadic bind; a throw in `f` or a rejection of its result becomes
+  `Left(onError(e))`
 - **`ap(ef: EitherAsync<L, (a: A) => B>): (ea: EitherAsync<L, A>) => EitherAsync<L, B>`** — Applicative apply
 
 ### Extraction & Analysis
@@ -460,7 +501,7 @@ Result with error branch wrapped in a lazy Promise. Rejections become `Left`; ne
 ## ReaderEitherAsync — Lazy Async Either with Dependency Injection
 
 Composes `Reader<R, A>` with `EitherAsync<L, A>`: a lazy `(env: R) => Promise<Either<L, A>>`. Use it for asynchronous, failable computations that need a threaded environment (clients, config,
-loggers). Equivalent in role to fp-ts `ReaderTaskEither`.
+loggers). Equivalent in role to fp-ts `ReaderTaskEither`. Exceptions follow the `EitherAsync` contract: use `tryCatch`, `fromPromise`, `tryMap` or `tryChain` where a callback may throw.
 
 ### Types
 
@@ -500,6 +541,9 @@ loggers). Equivalent in role to fp-ts `ReaderTaskEither`.
 - **`bimap(f, g): (rea) => ReaderEitherAsync<R, L2, B>`** — Bifunctor map
 - **`chain(f: (a: A) => ReaderEitherAsync<R, L, B>): (rea) => ReaderEitherAsync<R, L, B>`** — Monadic bind
 - **`chainLeft(f: (l: L) => ReaderEitherAsync<R, L2, A>): (rea) => ReaderEitherAsync<R, L2, A>`** — Chain over Left (recovery)
+- **`tryMap(f: (a: A) => B, onError: (e: unknown) => L): (rea) => ReaderEitherAsync<R, L, B>`** — Map over Right; a throw in `f` becomes `Left(onError(e))`
+- **`tryChain(f: (a: A) => ReaderEitherAsync<R, L, B>, onError: (e: unknown) => L): (rea) => ReaderEitherAsync<R, L, B>`** — Monadic bind; a throw in `f` or a rejection of its result becomes
+  `Left(onError(e))`
 - **`ap(ref: ReaderEitherAsync<R, L, (a: A) => B>): (rea) => ReaderEitherAsync<R, L, B>`** — Applicative apply
 
 ### Extraction & Analysis
@@ -521,7 +565,8 @@ loggers). Equivalent in role to fp-ts `ReaderTaskEither`.
 ## CancellableEitherAsync — Lazy Async Either with Cooperative Cancellation
 
 Extends `EitherAsync` with a third terminal state, `Cancelled`, and threads an optional `AbortSignal` through `run()`. Use it for timeouts, races, and request flows that must abandon work cleanly.
-Sibling to `EitherAsync`; existing `EitherAsync` users are unaffected. See [CANCELLABLE_DESIGN.md](./CANCELLABLE_DESIGN.md) for the design rationale and deferred v2 follow-ups.
+Sibling to `EitherAsync`; existing `EitherAsync` users are unaffected. See [CANCELLABLE_DESIGN.md](./CANCELLABLE_DESIGN.md) for the design rationale and deferred v2 follow-ups. Exceptions follow the
+`EitherAsync` contract, plus aborts become `Cancelled`: use `tryCatch`, `fromPromise`, `fromAbortable`, `tryMap` or `tryChain` where a callback may throw.
 
 ### Types
 
@@ -564,6 +609,9 @@ All combinators propagate `Cancelled` unchanged unless explicitly noted.
 - **`chainLeft(f: (l: L) => CancellableEitherAsync<L2, R>): (cea) => CancellableEitherAsync<L2, R>`** — Recover from `Left`. **Does NOT recover from `Cancelled`** — by design, so abandoned work is not
   silently re-run
 - **`chainCancelled(f: (reason: unknown) => CancellableEitherAsync<L, R>): (cea) => CancellableEitherAsync<L, R>`** — Recover from `Cancelled`; `Right` and `Left` pass through untouched
+- **`tryMap(f: (a: A) => B, onError: (e: unknown) => L): (cea) => CancellableEitherAsync<L, B>`** — Map over Right; a throw in `f` becomes `Left(onError(e))`
+- **`tryChain(f: (a: A) => CancellableEitherAsync<L, B>, onError: (e: unknown) => L): (cea) => CancellableEitherAsync<L, B>`** — Monadic bind; signal is threaded. A throw in `f` or a rejection of its
+  result becomes `Left(onError(e))`, or `Cancelled` for an `AbortError`
 - **`ap(cef: CancellableEitherAsync<L, (a: A) => B>): (cea) => CancellableEitherAsync<L, B>`** — Applicative apply
 
 ### Cancellation Operations
