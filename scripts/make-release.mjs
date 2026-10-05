@@ -136,7 +136,14 @@ git tag '@zambit/elevate-ts@${version}' -m 'Release ${version}'
 git push origin '@zambit/elevate-ts@${version}'
 \`\`\`
 
-\`publish.yml\` will then build, test, \`npm publish\` against the \`prod\` environment, and create the GitHub Release. See [PUBLISH_CHECKLIST.md](PUBLISH_CHECKLIST.md) for the full procedure.
+\`publish.yml\` will then build, test, smoke-test the package, **stage** it on npm (\`npm stage publish\`), and create a draft GitHub Release. The version is not live until you verify and approve it:
+
+\`\`\`sh
+pnpm verify-staged ${version}
+npm stage approve <stage-id>    # prompts for 2FA
+\`\`\`
+
+Then publish the draft GitHub Release. See [PUBLISH_CHECKLIST.md](PUBLISH_CHECKLIST.md) and [docs/TESTING_STAGED_RELEASES.md](docs/TESTING_STAGED_RELEASES.md) for the full procedure.
 `;
 fs.writeFileSync(bodyPath, body);
 
