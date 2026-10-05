@@ -21,3 +21,5 @@ CLAUDE.md
 llm-context
 locals/
 .DS_Store
+# Scratch documents not meant to be committed (plans, working notes)
+*.dontkeep.md
