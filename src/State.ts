@@ -1,6 +1,10 @@
 // State — Pure Stateful Computation
 
-/** Represents a State computation: a pure function (s: S) => readonly [A, S]. */
+/**
+ * Represents a State computation: a pure function (s: S) => readonly [A, S].
+ * Results are array tuples (the library's default pair) so they destructure as
+ * `const [value, next] = ...`. Use Tuple when you need named fields.
+ */
 export type State<S, A> = { readonly tag: 'State'; readonly run: (s: S) => readonly [A, S] };
 
 // Private prototype for Fantasy Land methods. State values' prototype chain is

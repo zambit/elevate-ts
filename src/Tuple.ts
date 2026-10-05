@@ -1,6 +1,10 @@
 // Tuple — Immutable 2-Tuples
 
-/** Immutable 2-tuple. */
+/**
+ * Immutable 2-tuple with named fields.
+ * Use it when you want `fst` / `snd` accessors or the Functor/Bifunctor operations.
+ * Array tuples (`readonly [A, B]`) are the library's default pair, e.g. State's results.
+ */
 export type Tuple<A, B> = { readonly fst: A; readonly snd: B };
 
 // Private prototype for Fantasy Land methods. Tuple values' prototype chain is
