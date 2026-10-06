@@ -16,10 +16,11 @@ For the end-to-end release process, see [PUBLISH_CHECKLIST.md](../PUBLISH_CHECKL
 ## Quick path
 
 ```bash
-pnpm verify-staged <VERSION>      # for example: pnpm verify-staged 0.9.0
+pnpm verify-staged <VERSION> --review      # for example: pnpm verify-staged 0.9.0 --review
 ```
 
-On success it prints a summary and the approve command:
+This runs the automated checks, then walks you through the [human checks](#human-checks) on the same tarball and writes a [review record](#review-record). Without `--review`, it stops after the
+automated checks and prints a summary:
 
 ```text
 [verify-staged] OK: @zambit/elevate-ts@0.9.0
@@ -30,7 +31,7 @@ On success it prints a summary and the approve command:
   tarball:    /tmp/elevate-ts-staged-XXXX/zambit-elevate-ts-0.9.0-1b9d6bcd-....tgz
 ```
 
-Then do the [human checks](#human-checks) and [approve](#approve).
+Then run the [human checks](#human-checks) with `pnpm review-tarball <TARBALL>`, and [approve](#approve).
 
 ## What `pnpm verify-staged` checks
 
@@ -45,34 +46,40 @@ CI runs checks 3 and 4 against a freshly packed tarball before staging (`pnpm sm
 
 ## Human checks
 
-The script cannot judge these. They take a minute; the tarball path is in the script's output.
+A script cannot judge these, but it can gather the evidence. `pnpm review-tarball` (or `verify-staged --review`) shows each check with its facts and any warnings, and asks you for a verdict:
 
-- [ ] **Dist-tag.** The summary's `dist-tag` is `latest` for a normal release. A pre-release such as `1.0.0-beta.1` should use a different tag (for example `next`). The tag cannot be changed after
-      staging; if it is wrong, reject and re-stage.
-- [ ] **File list.** Nothing unexpected ships (test fixtures, local notes, `.env` files) and nothing expected is missing:
+```bash
+pnpm review-tarball <TARBALL> [--out <file>]
+```
 
-  ```bash
-  tar -tzf <TARBALL> | sort
-  ```
+Answer `p` (pass), `f` (fail), `s` (skip), or `v` to view more where offered. A fail or skip asks for a short note.
 
-- [ ] **Version and changelog.** The version matches the release PR, and the version's entry in the repo's `CHANGELOG.md` describes what shipped. (`CHANGELOG.md` is not part of the package, so check
-      the repo copy.)
+1. **Dist-tag.** Shows the tag the version is staged with (looked up by the tarball's shasum). Warns if a pre-release such as `1.0.0-beta.1` is tagged `latest`, or a normal release is not. The tag
+   cannot be changed after staging; if it is wrong, fail and re-stage.
+2. **Files.** Shows the file count and what was added or removed since the previous published version, and flags files that usually should not ship (`.env`, `.DS_Store`, tests, `reviews/`, `.claude/`,
+   `*.dontkeep.md`, ...). `v` lists every file.
+3. **Version and changelog.** Shows the tarball's version next to that version's entry in the repo's `CHANGELOG.md`, and warns if the entry is missing.
+4. **README.** Shows what changed in the README since the previous version. The README becomes the npm package page. `v` shows the rest of a long diff.
+5. **Real-code trial (optional).** Give the path to a project that uses the library, or press Enter to skip. It copies the project to a temporary directory (without `node_modules` and `.git`), runs
+   `pnpm install`, `pnpm add <TARBALL>` and `pnpm test` there, and reports the result. Your project is not modified.
 
-  ```bash
-  tar -xOzf <TARBALL> package/package.json | grep '"version"'
-  ```
+At the end it prints a summary. If no check failed, it prints the `npm stage approve` command. If one failed, it prints the `npm stage reject` command instead. It never approves or rejects for you.
 
-- [ ] **README.** It reads correctly; it becomes the npm package page:
+### Review record
 
-  ```bash
-  tar -xOzf <TARBALL> package/README.md | less
-  ```
+Each review writes a markdown record to `reviews/releases/<VERSION>.md` (or `--out <file>`): the outcome, reviewer (npm and git identity), date, stage id, dist-tag, shasum, and each check's verdict,
+note and findings. Commit it with the next change, or attach it to the GitHub Release (`gh release upload '@zambit/elevate-ts@<VERSION>' reviews/releases/<VERSION>.md`). Records are excluded from
+markdownlint and Prettier because reviewer notes are free text.
 
-- [ ] **Optional: try it in real code.** Install the tarball into a project that uses the library and run its tests:
+### By hand
 
-  ```bash
-  pnpm add <TARBALL>
-  ```
+If `review-tarball` is unavailable, the same checks manually:
+
+- [ ] **Dist-tag:** `npm stage list @zambit/elevate-ts --json` shows the tag for the version.
+- [ ] **File list:** `tar -tzf <TARBALL> | sort`
+- [ ] **Version:** `tar -xOzf <TARBALL> package/package.json | grep '"version"'`, then read that version's entry in the repo's `CHANGELOG.md`.
+- [ ] **README:** `tar -xOzf <TARBALL> package/README.md | less`
+- [ ] **Optional real-code trial:** `pnpm add <TARBALL>` in a copy of a project that uses the library, then run its tests.
 
 ## Approve
 
@@ -146,6 +153,15 @@ The version was staged more than once, for example with different dist-tags. Ins
 The downloaded tarball is not the one the registry recorded. **Do not approve.** Retry once in case the download was corrupted. If it still mismatches, reject the staged version and investigate before
 releasing.
 
+### `review-tarball` shows "staged entry not confirmed"
+
+The `npm stage list` lookup failed or found no entry with the tarball's shasum. Usually you are not logged in (run `npm login`); otherwise the tarball is not the staged one. Confirm with
+`npm stage list @zambit/elevate-ts --json` before approving.
+
+### `review-tarball` says "Input ended before the review finished"
+
+Its input closed before every check was answered (for example, piped answers ran out). Nothing was recorded; run it again.
+
 ### Smoke test failures
 
 - `Export targets missing from the tarball` — a file named in `package.json` `exports` did not ship. Usually a build or `files` problem; reproduce locally with `pnpm build && pnpm smoke:package`.
@@ -155,5 +171,6 @@ releasing.
 
 - [PUBLISH_CHECKLIST.md](../PUBLISH_CHECKLIST.md) — the full release process
 - [scripts/verify-staged.ts](../scripts/verify-staged.ts) — the verification script
+- [scripts/review-tarball.ts](../scripts/review-tarball.ts) — the guided human review
 - [scripts/smoke-package.ts](../scripts/smoke-package.ts) — the package smoke test CI runs before staging
 - `npm help stage` — npm's staged publishing reference (subcommands, 2FA rules, tag behavior)
