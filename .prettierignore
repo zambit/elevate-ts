@@ -9,3 +9,5 @@ pnpm-lock.yaml
 .output/
 .vercel/
 .changeset/
+# Generated release review records (pnpm review-tarball); keep them byte-for-byte as written
+reviews/releases/
