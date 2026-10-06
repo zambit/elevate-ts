@@ -84,11 +84,12 @@ publishes.
 ### Step 5 — Verify and approve the staged release
 
 ```bash
-npm login                      # once; staged packages are visible only to maintainers
-pnpm verify-staged <VERSION>
+npm login                      # sessions expire; staged packages are visible only to maintainers
+pnpm verify-staged <VERSION> --review
 ```
 
-`verify-staged` downloads the exact staged tarball, checks its shasum against the registry, smoke-tests it, and prints the approve command. Finish the human checks, then approve (prompts for 2FA):
+`verify-staged` downloads the exact staged tarball, checks its shasum against the registry, and smoke-tests it. `--review` then walks you through the human checks (dist-tag, files compared with the
+previous release, changelog, README changes, optional trial in a real project) and writes a review record to `reviews/releases/<VERSION>.md`. If every check passed, approve (prompts for 2FA):
 
 ```bash
 npm stage approve <STAGE-ID>
@@ -205,6 +206,11 @@ The npm trusted publisher does not match this run, or does not allow the command
 npm used a token that cannot publish (typically expired). For scoped packages npm reports this as a 404, not a 403. Releases should authenticate through trusted publishing; make sure no
 `NODE_AUTH_TOKEN` is set on the publish step.
 
+### Create GitHub Release fails with `Not Found - ... update-a-release-asset`
+
+Fixed in `publish.yml` by no longer attaching `dist/**`: the ESM and CJS builds share file names, and GitHub release asset names must be unique. If it reappears, check that no `files:` input was added
+back to that step. The npm side is unaffected.
+
 ### Create GitHub Release fails with `403 Resource not accessible by integration`
 
 The job lacks `permissions: contents: write`. The npm side is unaffected; create the release by hand with `gh release create '@zambit/elevate-ts@<VERSION>' --notes-file <notes>`.
@@ -233,19 +239,20 @@ Then fix the issue, add a new changeset, run `pnpm make-release` to produce a su
 
 ## Automation status
 
-| Part                   | Automated | Where                                                                    |
-| ---------------------- | --------- | ------------------------------------------------------------------------ |
-| Changeset capture      | manual    | Contributors add `.changeset/*.md` files in PRs                          |
-| Version bump           | yes       | `pnpm make-release` (local) → `changeset version`                        |
-| Changelog generation   | yes       | `pnpm make-release` → `changeset version` + `fix:changelog`              |
-| README badge sync      | yes       | `pnpm make-release` updates and verifies via `check:readme`              |
-| Release branch + PR    | yes       | `pnpm make-release` opens the PR via `gh` under your account             |
-| Git tagging            | manual    | After release PR merges, push `@zambit/elevate-ts@<VERSION>` by hand     |
-| Package smoke test     | yes       | `publish.yml` runs `pnpm smoke:package` before staging                   |
-| npm staging            | yes       | `publish.yml` on tag push, `npm stage publish` via trusted publishing    |
-| Staged release checks  | yes       | `pnpm verify-staged <VERSION>` (local, maintainer)                       |
-| npm approval (go live) | manual    | `npm stage approve <STAGE-ID>` with 2FA                                  |
-| GitHub Releases        | partial   | `publish.yml` creates a draft; publish it by hand after approving on npm |
+| Part                   | Automated | Where                                                                      |
+| ---------------------- | --------- | -------------------------------------------------------------------------- |
+| Changeset capture      | manual    | Contributors add `.changeset/*.md` files in PRs                            |
+| Version bump           | yes       | `pnpm make-release` (local) → `changeset version`                          |
+| Changelog generation   | yes       | `pnpm make-release` → `changeset version` + `fix:changelog`                |
+| README badge sync      | yes       | `pnpm make-release` updates and verifies via `check:readme`                |
+| Release branch + PR    | yes       | `pnpm make-release` opens the PR via `gh` under your account               |
+| Git tagging            | manual    | After release PR merges, push `@zambit/elevate-ts@<VERSION>` by hand       |
+| Package smoke test     | yes       | `publish.yml` runs `pnpm smoke:package` before staging                     |
+| npm staging            | yes       | `publish.yml` on tag push, `npm stage publish` via trusted publishing      |
+| Staged release checks  | yes       | `pnpm verify-staged <VERSION>` (local, maintainer)                         |
+| Human release review   | guided    | `pnpm verify-staged <VERSION> --review` or `pnpm review-tarball <TARBALL>` |
+| npm approval (go live) | manual    | `npm stage approve <STAGE-ID>` with 2FA                                    |
+| GitHub Releases        | partial   | `publish.yml` creates a draft; publish it by hand after approving on npm   |
 
 ## See Also
 
