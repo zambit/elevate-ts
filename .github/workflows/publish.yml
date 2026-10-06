@@ -76,7 +76,9 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v3
         with:
-          files: dist/**
+          # No `files:` — the npm package is the release artifact. Attaching dist/**
+          # failed on 0.9.0: ESM and CJS builds share basenames (dist/esm/Either.js and
+          # dist/cjs/Either.js), and GitHub release asset names must be unique.
           # Draft until the staged npm release is approved; publish it by hand afterwards.
           draft: true
           prerelease: false
