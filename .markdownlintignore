@@ -2,3 +2,5 @@ node_modules
 locals
 prompts
 llm-context
+# Generated release review records (pnpm review-tarball); reviewer notes are free text
+reviews/releases

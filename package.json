@@ -129,6 +129,7 @@
     "make-release": "node scripts/make-release.mjs",
     "smoke:package": "tsx scripts/smoke-package.ts",
     "verify-staged": "tsx scripts/verify-staged.ts",
+    "review-tarball": "tsx scripts/review-tarball.ts",
     "prepare": "husky install",
     "changeset": "changeset",
     "changeset:version": "changeset version",

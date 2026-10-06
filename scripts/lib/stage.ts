@@ -51,3 +51,10 @@ export const checkShasum =
   (item: StageItem) =>
   (actual: string): Either.Either<string, string> =>
     actual === item.shasum ? Either.Right(actual) : Either.Left(`Shasum mismatch: registry has ${item.shasum}, downloaded tarball is ${actual}`);
+
+/** Condense a failed npm command's output: a login hint for auth errors, else just npm's error lines. */
+export const explainNpmError = (text: string): string => {
+  if (/\b(E401|ENEEDAUTH)\b/.test(text)) return 'Not logged in to npm, or the session expired. Run `npm login` and retry.';
+  const errors = text.split('\n').filter((l) => l.startsWith('npm error') && !l.includes('A complete log of this run'));
+  return errors.length === 0 ? text : errors.join('\n');
+};

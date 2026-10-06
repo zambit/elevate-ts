@@ -6,7 +6,7 @@ import * as EitherAsync from '../../src/EitherAsync.js';
 import { pipe } from '../../src/Function.js';
 
 import { smokeTestTarball, type SmokeDeps, type SmokeReport } from './smoke.js';
-import { checkShasum, findStaged, parseStageItems, stagedTarballName, type StageItem } from './stage.js';
+import { checkShasum, explainNpmError, findStaged, parseStageItems, stagedTarballName, type StageItem } from './stage.js';
 
 export type ReleaseDeps = SmokeDeps & {
   readonly makeTempDir: (prefix: string) => EitherAsync.EitherAsync<string, string>;
@@ -47,7 +47,8 @@ const _findStagedItem =
   (packageName: string, version: string): EitherAsync.EitherAsync<string, StageItem> =>
     pipe(
       deps.run('npm', ['stage', 'list', packageName, '--json'], dir),
-      EitherAsync.chain((raw) => EitherAsync.liftEither(Either.chain(findStaged(packageName, version))(parseStageItems(raw))))
+      EitherAsync.mapLeft(explainNpmError),
+      EitherAsync.chain((raw: string) => EitherAsync.liftEither(Either.chain(findStaged(packageName, version))(parseStageItems(raw))))
     );
 
 const _downloadVerified =

@@ -77,7 +77,7 @@ describe('verifyStaged', () => {
 
   it('returns Left when npm stage list fails (for example, not logged in)', async () => {
     const fake = fakeDeps({ commands: { [LIST]: { fail: 'E401 not logged in' } } });
-    expect(await verifyStaged(fake.deps)(NAME, '0.9.0').run()).toMatchObject({ tag: 'Left', left: 'E401 not logged in' });
+    expect(await verifyStaged(fake.deps)(NAME, '0.9.0').run()).toMatchObject({ tag: 'Left', left: expect.stringMatching(/Run `npm login`/) });
   });
 
   it('returns Left on a shasum mismatch, before installing anything', async () => {
