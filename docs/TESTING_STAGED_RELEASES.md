@@ -16,14 +16,14 @@ For the end-to-end release process, see [PUBLISH_CHECKLIST.md](../PUBLISH_CHECKL
 ## Quick path
 
 ```bash
-pnpm verify-staged <VERSION> --review      # for example: pnpm verify-staged 0.9.0 --review
+pnpm release-check verify <VERSION> --review      # for example: pnpm release-check verify 0.9.0 --review
 ```
 
 This runs the automated checks, then walks you through the [human checks](#human-checks) on the same tarball and writes a [review record](#review-record). Without `--review`, it stops after the
 automated checks and prints a summary:
 
 ```text
-[verify-staged] OK: @zambit/elevate-ts@0.9.0
+[release-check] verify OK: @zambit/elevate-ts@0.9.0
   stage id:   1b9d6bcd-bbfd-4b2d-9b5d-ab8dfbbd4bed
   dist-tag:   latest
   shasum:     5f0c7c3b... (matches download)
@@ -31,9 +31,17 @@ automated checks and prints a summary:
   tarball:    /tmp/elevate-ts-staged-XXXX/zambit-elevate-ts-0.9.0-1b9d6bcd-....tgz
 ```
 
-Then run the [human checks](#human-checks) with `pnpm review-tarball <TARBALL>`, and [approve](#approve).
+Then run the [human checks](#human-checks) with `pnpm release-check review <TARBALL>`, and [approve](#approve).
 
-## What `pnpm verify-staged` checks
+To check a tarball you already have (smoke test plus the guided review in one command):
+
+```bash
+pnpm release-check check <TARBALL>
+```
+
+All commands are listed in [TOOLING.md](./TOOLING.md#release-check). The older names `pnpm verify-staged`, `pnpm review-tarball` and `pnpm smoke:package` still work as aliases.
+
+## What `release-check verify` checks
 
 1. **The staged entry exists.** It runs `npm stage list @zambit/elevate-ts --json` and requires exactly one entry for the version.
 2. **The tarball is the one npm holds.** It runs `npm stage download <stage-id>`, computes the tarball's sha1, and compares it with the registry's recorded `shasum`.
@@ -42,14 +50,15 @@ Then run the [human checks](#human-checks) with `pnpm review-tarball <TARBALL>`,
 
 It never runs `npm stage approve`. Approval is a deliberate human step that needs your 2FA.
 
-CI runs checks 3 and 4 against a freshly packed tarball before staging (`pnpm smoke:package`). `verify-staged` repeats them against the exact staged bytes.
+CI runs checks 3 and 4 against a freshly packed tarball before staging (`pnpm release-check smoke`). `verify` repeats them against the exact staged bytes.
 
 ## Human checks
 
-A script cannot judge these, but it can gather the evidence. `pnpm review-tarball` (or `verify-staged --review`) shows each check with its facts and any warnings, and asks you for a verdict:
+A script cannot judge these, but it can gather the evidence. `pnpm release-check review` (or `verify --review`, or `check`) shows each check with its facts and any warnings, and asks you for a
+verdict:
 
 ```bash
-pnpm review-tarball <TARBALL> [--out <file>]
+pnpm release-check review <TARBALL> [--out <file>]
 ```
 
 Answer `p` (pass), `f` (fail), `s` (skip), or `v` to view more where offered. A fail or skip asks for a short note.
@@ -73,7 +82,7 @@ markdownlint and Prettier because reviewer notes are free text.
 
 ### By hand
 
-If `review-tarball` is unavailable, the same checks manually:
+If `release-check` is unavailable, the same checks manually:
 
 - [ ] **Dist-tag:** `npm stage list @zambit/elevate-ts --json` shows the tag for the version.
 - [ ] **File list:** `tar -tzf <TARBALL> | sort`
@@ -110,7 +119,7 @@ A rejected version never went live, so no one can have installed it. Then:
 
 ## Manual fallback
 
-If `pnpm verify-staged` is broken, or the npm CLI has changed underneath it, the same checks by hand:
+If `pnpm release-check verify` is broken, or the npm CLI has changed underneath it, the same checks by hand:
 
 ```bash
 WORK=$(mktemp -d) && cd "$WORK"
@@ -153,24 +162,24 @@ The version was staged more than once, for example with different dist-tags. Ins
 The downloaded tarball is not the one the registry recorded. **Do not approve.** Retry once in case the download was corrupted. If it still mismatches, reject the staged version and investigate before
 releasing.
 
-### `review-tarball` shows "staged entry not confirmed"
+### `release-check review` shows "staged entry not confirmed"
 
 The `npm stage list` lookup failed or found no entry with the tarball's shasum. Usually you are not logged in (run `npm login`); otherwise the tarball is not the staged one. Confirm with
 `npm stage list @zambit/elevate-ts --json` before approving.
 
-### `review-tarball` says "Input ended before the review finished"
+### `release-check review` says "Input ended before the review finished"
 
 Its input closed before every check was answered (for example, piped answers ran out). Nothing was recorded; run it again.
 
 ### Smoke test failures
 
-- `Export targets missing from the tarball` — a file named in `package.json` `exports` did not ship. Usually a build or `files` problem; reproduce locally with `pnpm build && pnpm smoke:package`.
-- A module fails to `import` or `require` — reproduce with `pnpm build && pnpm smoke:package`, which runs the same checks against a local pack.
+- `Export targets missing from the tarball` — a file named in `package.json` `exports` did not ship. Usually a build or `files` problem; reproduce locally with
+  `pnpm build && pnpm release-check smoke`.
+- A module fails to `import` or `require` — reproduce with `pnpm build && pnpm release-check smoke`, which runs the same checks against a local pack.
 
 ## See Also
 
 - [PUBLISH_CHECKLIST.md](../PUBLISH_CHECKLIST.md) — the full release process
-- [scripts/verify-staged.ts](../scripts/verify-staged.ts) — the verification script
-- [scripts/review-tarball.ts](../scripts/review-tarball.ts) — the guided human review
-- [scripts/smoke-package.ts](../scripts/smoke-package.ts) — the package smoke test CI runs before staging
+- [TOOLING.md](./TOOLING.md#release-check) — `release-check` commands and options
+- [scripts/release-check/](../scripts/release-check/) — the CLI (commands, handlers, feature specs)
 - `npm help stage` — npm's staged publishing reference (subcommands, 2FA rules, tag behavior)
