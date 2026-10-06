@@ -1,5 +1,5 @@
-// Command layer for the human release review, shared by `pnpm review-tarball`
-// and `pnpm verify-staged --review`: terminal prompts, the review record, and the
+// Command layer for the human release review, shared by `release-check review`,
+// `check` and `verify --review`: terminal prompts, the review record, and the
 // closing instructions. It never approves; approving stays a manual 2FA step.
 
 import { stdin, stdout } from 'node:process';

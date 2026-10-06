@@ -122,7 +122,7 @@ const _evidence = (tarball: string, c: Core, o: Optional): Evidence => ({
 /**
  * Gather review evidence for `tarball`. Fails only if the tarball itself cannot be
  * read; registry and changelog lookups degrade to explanations.
- * Pass `staged` when the caller already knows the staged entry (verify-staged).
+ * Pass `staged` when the caller already knows the staged entry (release-check verify).
  */
 export const gatherEvidence =
   (deps: ReleaseDeps) =>

@@ -26,6 +26,39 @@ export const parsePackFilename = (raw: string): Either.Either<string, string> =>
     )
   );
 
+const _packageName = (raw: string, source: string): Either.Either<string, string> =>
+  Either.chain((json: unknown) =>
+    typeof json === 'object' && json !== null && typeof (json as { name?: unknown }).name === 'string'
+      ? Either.Right((json as { name: string }).name)
+      : Either.Left<string>(`${source} has no package name`)
+  )(
+    Either.tryCatch(
+      (): unknown => JSON.parse(raw),
+      (e) => `Could not parse ${source}: ${(e as Error).message}`
+    )
+  );
+
+/** The `name` from the package.json at `root`. */
+export const readPackageName =
+  (deps: ReleaseDeps) =>
+  (root: string): EitherAsync.EitherAsync<string, string> =>
+    EitherAsync.chain((raw: string) => EitherAsync.liftEither(_packageName(raw, `${root}/package.json`)))(deps.readText(`${root}/package.json`));
+
+/** Smoke-test an existing tarball (no packing); the package name comes from the tarball itself. */
+export const smokeTarball =
+  (deps: ReleaseDeps) =>
+  (tarball: string): EitherAsync.EitherAsync<string, SmokeReport> =>
+    pipe(
+      deps.makeTempDir('elevate-ts-smoke-'),
+      EitherAsync.chain((dir: string) =>
+        pipe(
+          deps.run('tar', ['-xOzf', tarball, 'package/package.json'], dir),
+          EitherAsync.chain((raw: string) => EitherAsync.liftEither(_packageName(raw, "the tarball's package.json"))),
+          EitherAsync.chain((name: string) => smokeTestTarball(deps)(tarball, dir, name))
+        )
+      )
+    );
+
 /** Pack the package at `root` and smoke-test the tarball. */
 export const packAndSmoke =
   (deps: ReleaseDeps) =>

@@ -139,7 +139,7 @@ git push origin '@zambit/elevate-ts@${version}'
 \`publish.yml\` will then build, test, smoke-test the package, **stage** it on npm (\`npm stage publish\`), and create a draft GitHub Release. The version is not live until you verify and approve it:
 
 \`\`\`sh
-pnpm verify-staged ${version}
+pnpm release-check verify ${version} --review
 npm stage approve <stage-id>    # prompts for 2FA
 \`\`\`
 

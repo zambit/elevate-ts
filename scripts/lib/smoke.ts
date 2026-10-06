@@ -1,6 +1,6 @@
 // Package smoke test: install a packed tarball into a throwaway consumer project
 // and prove every subpath export resolves and loads under both ESM and CJS.
-// Shared by `pnpm smoke:package` (CI, before staging) and `pnpm verify-staged`
+// Shared by `release-check smoke` (CI, before staging) and `release-check verify`
 // (maintainer, against the staged tarball).
 
 import * as Either from '../../src/Either.js';
