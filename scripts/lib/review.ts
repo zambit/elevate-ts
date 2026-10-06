@@ -1,4 +1,4 @@
-// Pure helpers for the human release review (`pnpm review-tarball`).
+// Pure helpers for the human release review (`pnpm release-check review`).
 // Each turns raw command output into evidence a reviewer can judge quickly.
 
 import * as Either from '../../src/Either.js';

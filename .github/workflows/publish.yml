@@ -48,7 +48,7 @@ jobs:
       # Pack exactly as npm would, install the tarball into a throwaway project,
       # and load every subpath export under ESM and CJS. Fails before staging.
       - name: Smoke-test the packed package
-        run: pnpm smoke:package
+        run: pnpm release-check smoke
 
       - name: Determine license (AGPL vs Commercial)
         id: license
