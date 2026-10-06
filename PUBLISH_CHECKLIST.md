@@ -74,7 +74,7 @@ git push origin '@zambit/elevate-ts@<VERSION>'
 `publish.yml` fires on the tag push:
 
 1. Build + test
-2. `pnpm smoke:package` — packs the package, installs the tarball into a throwaway project, and loads every subpath export under ESM and CJS
+2. `pnpm release-check smoke` — packs the package, installs the tarball into a throwaway project, and loads every subpath export under ESM and CJS
 3. `npm stage publish --provenance` — stages the release on npm (authenticated by npm trusted publishing, no token; defaults to the `latest` dist-tag). The version is **not** installable yet.
 4. Creates a **draft** GitHub Release for the tag
 
@@ -85,11 +85,11 @@ publishes.
 
 ```bash
 npm login                      # sessions expire; staged packages are visible only to maintainers
-pnpm verify-staged <VERSION> --review
+pnpm release-check verify <VERSION> --review
 ```
 
-`verify-staged` downloads the exact staged tarball, checks its shasum against the registry, and smoke-tests it. `--review` then walks you through the human checks (dist-tag, files compared with the
-previous release, changelog, README changes, optional trial in a real project) and writes a review record to `reviews/releases/<VERSION>.md`. If every check passed, approve (prompts for 2FA):
+`release-check verify` downloads the exact staged tarball, checks its shasum against the registry, and smoke-tests it. `--review` then walks you through the human checks (dist-tag, files compared with
+the previous release, changelog, README changes, optional trial in a real project) and writes a review record to `reviews/releases/<VERSION>.md`. If every check passed, approve (prompts for 2FA):
 
 ```bash
 npm stage approve <STAGE-ID>
@@ -215,7 +215,7 @@ back to that step. The npm side is unaffected.
 
 The job lacks `permissions: contents: write`. The npm side is unaffected; create the release by hand with `gh release create '@zambit/elevate-ts@<VERSION>' --notes-file <notes>`.
 
-### `pnpm verify-staged` fails
+### `pnpm release-check verify` fails
 
 See the troubleshooting section of [docs/TESTING_STAGED_RELEASES.md](docs/TESTING_STAGED_RELEASES.md).
 
@@ -239,20 +239,20 @@ Then fix the issue, add a new changeset, run `pnpm make-release` to produce a su
 
 ## Automation status
 
-| Part                   | Automated | Where                                                                      |
-| ---------------------- | --------- | -------------------------------------------------------------------------- |
-| Changeset capture      | manual    | Contributors add `.changeset/*.md` files in PRs                            |
-| Version bump           | yes       | `pnpm make-release` (local) → `changeset version`                          |
-| Changelog generation   | yes       | `pnpm make-release` → `changeset version` + `fix:changelog`                |
-| README badge sync      | yes       | `pnpm make-release` updates and verifies via `check:readme`                |
-| Release branch + PR    | yes       | `pnpm make-release` opens the PR via `gh` under your account               |
-| Git tagging            | manual    | After release PR merges, push `@zambit/elevate-ts@<VERSION>` by hand       |
-| Package smoke test     | yes       | `publish.yml` runs `pnpm smoke:package` before staging                     |
-| npm staging            | yes       | `publish.yml` on tag push, `npm stage publish` via trusted publishing      |
-| Staged release checks  | yes       | `pnpm verify-staged <VERSION>` (local, maintainer)                         |
-| Human release review   | guided    | `pnpm verify-staged <VERSION> --review` or `pnpm review-tarball <TARBALL>` |
-| npm approval (go live) | manual    | `npm stage approve <STAGE-ID>` with 2FA                                    |
-| GitHub Releases        | partial   | `publish.yml` creates a draft; publish it by hand after approving on npm   |
+| Part                   | Automated | Where                                                                    |
+| ---------------------- | --------- | ------------------------------------------------------------------------ |
+| Changeset capture      | manual    | Contributors add `.changeset/*.md` files in PRs                          |
+| Version bump           | yes       | `pnpm make-release` (local) → `changeset version`                        |
+| Changelog generation   | yes       | `pnpm make-release` → `changeset version` + `fix:changelog`              |
+| README badge sync      | yes       | `pnpm make-release` updates and verifies via `check:readme`              |
+| Release branch + PR    | yes       | `pnpm make-release` opens the PR via `gh` under your account             |
+| Git tagging            | manual    | After release PR merges, push `@zambit/elevate-ts@<VERSION>` by hand     |
+| Package smoke test     | yes       | `publish.yml` runs `pnpm release-check smoke` before staging             |
+| npm staging            | yes       | `publish.yml` on tag push, `npm stage publish` via trusted publishing    |
+| Staged release checks  | yes       | `pnpm release-check verify <VERSION>` (local, maintainer)                |
+| Human release review   | guided    | `pnpm release-check verify <VERSION> --review` or `check <TARBALL>`      |
+| npm approval (go live) | manual    | `npm stage approve <STAGE-ID>` with 2FA                                  |
+| GitHub Releases        | partial   | `publish.yml` creates a draft; publish it by hand after approving on npm |
 
 ## See Also
 
@@ -261,6 +261,6 @@ Then fix the issue, add a new changeset, run `pnpm make-release` to produce a su
 - [scripts/disambiguate-changelog-headings.mjs](scripts/disambiguate-changelog-headings.mjs) — MD024-safe heading rewriter
 - [.github/workflows/publish.yml](.github/workflows/publish.yml) — tag-triggered npm staging
 - [docs/TESTING_STAGED_RELEASES.md](docs/TESTING_STAGED_RELEASES.md) — verifying and approving a staged release
-- [scripts/verify-staged.ts](scripts/verify-staged.ts) and [scripts/smoke-package.ts](scripts/smoke-package.ts) — staged-release and package smoke checks
+- [scripts/release-check/](scripts/release-check/) and [docs/TOOLING.md](docs/TOOLING.md#release-check) — the `release-check` CLI (smoke, verify, review, check)
 - [.changeset/](.changeset/) — Changesets config and pending changesets
 - [Changesets documentation](https://github.com/changesets/changesets/blob/main/docs/intro-to-using-changesets.md)
