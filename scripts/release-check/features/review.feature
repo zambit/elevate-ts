@@ -27,7 +27,7 @@ Feature: release-check review
     Given the reviewer gives the path to a project with a pnpm-workspace.yaml
     When the trial runs
     Then the copy's pnpm-workspace.yaml gets an override pointing the package at the tarball
-    And the copy runs "pnpm install" and "pnpm -r test"
+    And the copy runs "pnpm install" and "pnpm -r --include-workspace-root test"
 
   Scenario: Workspace already has overrides
     Given the project's pnpm-workspace.yaml already has an overrides block

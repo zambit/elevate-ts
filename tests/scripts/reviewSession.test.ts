@@ -157,8 +157,8 @@ describe('trialInProject', () => {
 
   it("in a workspace, overrides the package and runs every member's tests", async () => {
     const fake = fakeDeps(workspace);
-    expect(await trialInProject(fake.deps)('/t.tgz', '/my/ws', 'pkg').run()).toEqual(Either.Right('pnpm -r test passed in workspace in a copy of /my/ws (/tmp/work)'));
-    expect(lines(fake.calls)).toEqual(['copy /my/ws /tmp/work', 'pnpm install', 'pnpm -r test']);
+    expect(await trialInProject(fake.deps)('/t.tgz', '/my/ws', 'pkg').run()).toEqual(Either.Right('pnpm -r --include-workspace-root test passed in workspace in a copy of /my/ws (/tmp/work)'));
+    expect(lines(fake.calls)).toEqual(['copy /my/ws /tmp/work', 'pnpm install', 'pnpm -r --include-workspace-root test']);
     expect(fake.written.get('/tmp/work/pnpm-workspace.yaml')).toContain('"pkg": "file:/t.tgz"');
   });
 
@@ -170,7 +170,10 @@ describe('trialInProject', () => {
 
   it('returns Left when the tests fail or the copy fails', async () => {
     expect(await trialInProject(fakeDeps({ ...single, commands: { 'pnpm test': { fail: '1 failed' } } }).deps)('/t.tgz', '/my/app', 'pkg').run()).toMatchObject({ tag: 'Left', left: '1 failed' });
-    expect(await trialInProject(fakeDeps({ ...workspace, commands: { 'pnpm -r test': { fail: '2 failed' } } }).deps)('/t.tgz', '/my/ws', 'pkg').run()).toMatchObject({ tag: 'Left', left: '2 failed' });
+    expect(await trialInProject(fakeDeps({ ...workspace, commands: { 'pnpm -r --include-workspace-root test': { fail: '2 failed' } } }).deps)('/t.tgz', '/my/ws', 'pkg').run()).toMatchObject({
+      tag: 'Left',
+      left: '2 failed'
+    });
     expect(await trialInProject(fakeDeps({ copyFails: 'EACCES' }).deps)('/t.tgz', '/my/app', 'pkg').run()).toMatchObject({ tag: 'Left', left: 'EACCES' });
   });
 

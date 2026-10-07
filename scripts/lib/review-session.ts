@@ -62,14 +62,15 @@ const _singleTrial = (deps: ReviewDeps, tarball: string, dir: string): EitherAsy
   );
 
 // A pnpm workspace: `pnpm add` at the root fails, so override the package for every member instead.
+// `-r` skips the workspace root unless told otherwise, and the root is often where the tests live.
 const _workspaceTrial = (deps: ReviewDeps, tarball: string, dir: string, packageName: string): EitherAsync.EitherAsync<string, string> =>
   pipe(
     deps.readText(`${dir}/pnpm-workspace.yaml`),
     EitherAsync.chain((yaml: string) => EitherAsync.liftEither(withOverride(yaml, packageName, tarball))),
     EitherAsync.chain((yaml: string) => deps.writeText(`${dir}/pnpm-workspace.yaml`, yaml)),
     EitherAsync.chain(() => deps.run('pnpm', ['install'], dir)),
-    EitherAsync.chain(() => deps.run('pnpm', ['-r', 'test'], dir)),
-    EitherAsync.map(() => 'pnpm -r test passed in workspace')
+    EitherAsync.chain(() => deps.run('pnpm', ['-r', '--include-workspace-root', 'test'], dir)),
+    EitherAsync.map(() => 'pnpm -r --include-workspace-root test passed in workspace')
   );
 
 /** Install the tarball into a copy of `project` (a single project or a pnpm workspace) and run its tests. Right(summary) when they pass. */
