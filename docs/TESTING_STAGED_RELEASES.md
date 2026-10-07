@@ -69,8 +69,11 @@ Answer `p` (pass), `f` (fail), `s` (skip), or `v` to view more where offered. A 
    `*.dontkeep.md`, ...). `v` lists every file.
 3. **Version and changelog.** Shows the tarball's version next to that version's entry in the repo's `CHANGELOG.md`, and warns if the entry is missing.
 4. **README.** Shows what changed in the README since the previous version. The README becomes the npm package page. `v` shows the rest of a long diff.
-5. **Real-code trial (optional).** Give the path to a project that uses the library, or press Enter to skip. It copies the project to a temporary directory (without `node_modules` and `.git`), runs
-   `pnpm install`, `pnpm add <TARBALL>` and `pnpm test` there, and reports the result. Your project is not modified.
+5. **Real-code trial (optional).** Give the path to a project that uses the library, or press Enter to skip. It copies the project to a temporary directory (without `node_modules` and `.git`),
+   installs the tarball there, runs the tests and reports the result. Your project is not modified.
+   - **Single project:** runs `pnpm install`, `pnpm add <TARBALL>` and `pnpm test`.
+   - **pnpm workspace** (the project has a `pnpm-workspace.yaml`): adds an `overrides` entry to the copy's `pnpm-workspace.yaml` that points the package at the tarball, so every workspace member uses
+     it, then runs `pnpm install` and `pnpm -r test`. If the file already has an `overrides` block, the trial stops and you run it by hand (see the checklist below).
 
 At the end it prints a summary. If no check failed, it prints the `npm stage approve` command. If one failed, it prints the `npm stage reject` command instead. It never approves or rejects for you.
 
@@ -88,7 +91,8 @@ If `release-check` is unavailable, the same checks manually:
 - [ ] **File list:** `tar -tzf <TARBALL> | sort`
 - [ ] **Version:** `tar -xOzf <TARBALL> package/package.json | grep '"version"'`, then read that version's entry in the repo's `CHANGELOG.md`.
 - [ ] **README:** `tar -xOzf <TARBALL> package/README.md | less`
-- [ ] **Optional real-code trial:** `pnpm add <TARBALL>` in a copy of a project that uses the library, then run its tests.
+- [ ] **Optional real-code trial:** `pnpm add <TARBALL>` in a copy of a project that uses the library, then run its tests. For a pnpm workspace, add `"@zambit/elevate-ts": "file:<TARBALL>"` under
+      `overrides:` in the copy's `pnpm-workspace.yaml` instead, then run `pnpm install` and `pnpm -r test`.
 
 ## Approve
 

@@ -2,6 +2,7 @@
 // optional trial in a real project, and builds the review record. Terminal I/O
 // goes through a Prompter so the flow can be tested with scripted answers.
 
+import * as Either from '../../src/Either.js';
 import * as EitherAsync from '../../src/EitherAsync.js';
 import { pipe } from '../../src/Function.js';
 
@@ -45,19 +46,43 @@ const _runCheck = async (p: Prompter, c: CheckSpec, n: number, total: number): P
   return { title: c.title, verdict, note: await _note(p, verdict), findings: c.findings };
 };
 
-/** Install the tarball into a copy of `project` and run its tests. Right(summary) when they pass. */
+/** `pnpm-workspace.yaml` text with an override pointing `packageName` at the tarball; Left if it already has overrides. */
+export const withOverride = (yaml: string, packageName: string, tarball: string): Either.Either<string, string> =>
+  /^overrides:/m.test(yaml)
+    ? Either.Left<string>('pnpm-workspace.yaml already has overrides; run this trial by hand (see TESTING_STAGED_RELEASES.md)')
+    : Either.Right(`${yaml.replace(/\n*$/, '\n')}overrides:\n  "${packageName}": "file:${tarball}"\n`);
+
+// A single project: add the tarball directly.
+const _singleTrial = (deps: ReviewDeps, tarball: string, dir: string): EitherAsync.EitherAsync<string, string> =>
+  pipe(
+    deps.run('pnpm', ['install'], dir),
+    EitherAsync.chain(() => deps.run('pnpm', ['add', tarball], dir)),
+    EitherAsync.chain(() => deps.run('pnpm', ['test'], dir)),
+    EitherAsync.map(() => 'pnpm test passed')
+  );
+
+// A pnpm workspace: `pnpm add` at the root fails, so override the package for every member instead.
+const _workspaceTrial = (deps: ReviewDeps, tarball: string, dir: string, packageName: string): EitherAsync.EitherAsync<string, string> =>
+  pipe(
+    deps.readText(`${dir}/pnpm-workspace.yaml`),
+    EitherAsync.chain((yaml: string) => EitherAsync.liftEither(withOverride(yaml, packageName, tarball))),
+    EitherAsync.chain((yaml: string) => deps.writeText(`${dir}/pnpm-workspace.yaml`, yaml)),
+    EitherAsync.chain(() => deps.run('pnpm', ['install'], dir)),
+    EitherAsync.chain(() => deps.run('pnpm', ['-r', 'test'], dir)),
+    EitherAsync.map(() => 'pnpm -r test passed in workspace')
+  );
+
+/** Install the tarball into a copy of `project` (a single project or a pnpm workspace) and run its tests. Right(summary) when they pass. */
 export const trialInProject =
   (deps: ReviewDeps) =>
-  (tarball: string, project: string): EitherAsync.EitherAsync<string, string> =>
+  (tarball: string, project: string, packageName: string): EitherAsync.EitherAsync<string, string> =>
     pipe(
       deps.makeTempDir('elevate-ts-trial-'),
       EitherAsync.chain((dir: string) =>
         pipe(
           deps.copyProject(project, dir),
-          EitherAsync.chain(() => deps.run('pnpm', ['install'], dir)),
-          EitherAsync.chain(() => deps.run('pnpm', ['add', tarball], dir)),
-          EitherAsync.chain(() => deps.run('pnpm', ['test'], dir)),
-          EitherAsync.map(() => `pnpm test passed in a copy of ${project} (${dir})`)
+          EitherAsync.chain(() => (deps.exists(`${dir}/pnpm-workspace.yaml`) ? _workspaceTrial(deps, tarball, dir, packageName) : _singleTrial(deps, tarball, dir))),
+          EitherAsync.map((summary: string) => `${summary} in a copy of ${project} (${dir})`)
         )
       )
     );
@@ -67,8 +92,8 @@ const _trial = async (deps: ReviewDeps, p: Prompter, e: Evidence, n: number): Pr
   p.say(['', `[${n}/${n}] ${title}`, '  Installs the tarball into a temporary copy of a project that uses the library and runs its tests.'].join('\n'));
   const project = (await p.ask('  Path to a project (Enter to skip): ')).trim();
   if (project === '') return { title, verdict: 'skip', note: 'not run', findings: [] };
-  p.say('  Running... (copying the project, pnpm install, pnpm add <tarball>, pnpm test)');
-  const result = await trialInProject(deps)(e.tarball, project).run();
+  p.say('  Running... (copying the project, installing the tarball, running its tests)');
+  const result = await trialInProject(deps)(e.tarball, project, e.packageName).run();
   p.say(result.tag === 'Right' ? `  OK: ${result.right}` : `  FAILED:\n${result.left}`);
   const verdict = await askVerdict(p, []);
   return { title, verdict, note: await _note(p, verdict), findings: [result.tag === 'Right' ? `tests passed in ${project}` : `tests failed in ${project}`] };
