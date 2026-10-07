@@ -34,7 +34,8 @@ Shows five checks, each with the evidence it gathered and any warnings, and asks
 2. **Files**, compared with the previous published version, with flags for files that usually should not ship.
 3. **Version and changelog**: the tarball's version next to its `CHANGELOG.md` entry.
 4. **README** changes since the previous version.
-5. **Real-code trial** (optional): runs a project's tests against the tarball in a temporary copy of that project.
+5. **Real-code trial** (optional): runs a project's tests against the tarball in a temporary copy of that project. pnpm workspaces are supported through an override in the copy's
+   `pnpm-workspace.yaml`.
 
 It writes a review record to `reviews/releases/<version>.md` (or `--out`). See [TESTING_STAGED_RELEASES.md](./TESTING_STAGED_RELEASES.md) for the release procedure and troubleshooting.
 

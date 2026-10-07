@@ -16,3 +16,20 @@ Feature: release-check review
     When the reviewer's input closes before every check is answered
     Then no review record is written
     And the command exits 1
+
+  Scenario: Real-code trial in a single project
+    Given the reviewer gives the path to a project without a pnpm-workspace.yaml
+    When the trial runs
+    Then a temporary copy of the project runs "pnpm install", "pnpm add <tarball>" and "pnpm test"
+    And the original project is not modified
+
+  Scenario: Real-code trial in a pnpm workspace
+    Given the reviewer gives the path to a project with a pnpm-workspace.yaml
+    When the trial runs
+    Then the copy's pnpm-workspace.yaml gets an override pointing the package at the tarball
+    And the copy runs "pnpm install" and "pnpm -r test"
+
+  Scenario: Workspace already has overrides
+    Given the project's pnpm-workspace.yaml already has an overrides block
+    When the trial runs
+    Then the trial fails without running pnpm and tells the reviewer to run it by hand

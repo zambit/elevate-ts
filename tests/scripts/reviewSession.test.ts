@@ -3,7 +3,7 @@ import { describe, it, expect } from 'vitest';
 import * as Either from '../../src/Either.js';
 import { changelogCheck, distTagCheck, evidenceChecks, filesCheck, readmeCheck } from '../../scripts/lib/review-checks.js';
 import type { Evidence } from '../../scripts/lib/review-evidence.js';
-import { askVerdict, runChecks, trialInProject, type Prompter } from '../../scripts/lib/review-session.js';
+import { askVerdict, runChecks, trialInProject, withOverride, type Prompter } from '../../scripts/lib/review-session.js';
 
 import { fakeDeps } from './fakeDeps.js';
 
@@ -120,7 +120,7 @@ describe('runChecks', () => {
   });
 
   it('runs the real-code trial when given a project path', async () => {
-    const fake = fakeDeps();
+    const fake = fakeDeps({ existing: () => false });
     const results = await runChecks(fake.deps, scripted(['p', 'p', 'p', 'p', '/my/app', 'p']), evidence());
     expect(results[4]).toMatchObject({ verdict: 'pass', findings: ['tests passed in /my/app'] });
   });
@@ -130,20 +130,52 @@ describe('runChecks', () => {
   });
 });
 
+describe('withOverride', () => {
+  it('appends an overrides block pointing the package at the tarball', () => {
+    expect(withOverride("packages:\n  - 'packages/*'\n", '@zambit/elevate-ts', '/t.tgz')).toEqual(Either.Right('packages:\n  - \'packages/*\'\noverrides:\n  "@zambit/elevate-ts": "file:/t.tgz"\n'));
+  });
+
+  it('adds a newline when the file does not end with one', () => {
+    expect(withOverride('packages: []', 'pkg', '/t.tgz')).toEqual(Either.Right('packages: []\noverrides:\n  "pkg": "file:/t.tgz"\n'));
+  });
+
+  it('returns Left when the file already has overrides', () => {
+    expect(withOverride('packages: []\noverrides:\n  foo: 1.0.0\n', 'pkg', '/t.tgz')).toMatchObject({ tag: 'Left' });
+  });
+});
+
 describe('trialInProject', () => {
-  it('copies the project, installs, adds the tarball and runs the tests', async () => {
-    const fake = fakeDeps();
-    expect(await trialInProject(fake.deps)('/t.tgz', '/my/app').run()).toMatchObject({ tag: 'Right' });
-    expect(fake.calls.map((c) => [c.cmd, ...c.args].join(' '))).toEqual(['copy /my/app /tmp/work', 'pnpm install', 'pnpm add /t.tgz', 'pnpm test']);
+  const single = { existing: (): boolean => false };
+  const workspace = { files: { '/tmp/work/pnpm-workspace.yaml': "packages:\n  - 'packages/*'\n" } };
+  const lines = (calls: readonly { cmd: string; args: readonly string[] }[]): string[] => calls.map((c) => [c.cmd, ...c.args].join(' '));
+
+  it('in a single project, installs, adds the tarball and runs the tests', async () => {
+    const fake = fakeDeps(single);
+    expect(await trialInProject(fake.deps)('/t.tgz', '/my/app', 'pkg').run()).toEqual(Either.Right('pnpm test passed in a copy of /my/app (/tmp/work)'));
+    expect(lines(fake.calls)).toEqual(['copy /my/app /tmp/work', 'pnpm install', 'pnpm add /t.tgz', 'pnpm test']);
+  });
+
+  it("in a workspace, overrides the package and runs every member's tests", async () => {
+    const fake = fakeDeps(workspace);
+    expect(await trialInProject(fake.deps)('/t.tgz', '/my/ws', 'pkg').run()).toEqual(Either.Right('pnpm -r test passed in workspace in a copy of /my/ws (/tmp/work)'));
+    expect(lines(fake.calls)).toEqual(['copy /my/ws /tmp/work', 'pnpm install', 'pnpm -r test']);
+    expect(fake.written.get('/tmp/work/pnpm-workspace.yaml')).toContain('"pkg": "file:/t.tgz"');
+  });
+
+  it('in a workspace that already has overrides, stops before running pnpm', async () => {
+    const fake = fakeDeps({ files: { '/tmp/work/pnpm-workspace.yaml': 'overrides:\n  foo: 1.0.0\n' } });
+    expect(await trialInProject(fake.deps)('/t.tgz', '/my/ws', 'pkg').run()).toMatchObject({ tag: 'Left' });
+    expect(lines(fake.calls)).toEqual(['copy /my/ws /tmp/work']);
   });
 
   it('returns Left when the tests fail or the copy fails', async () => {
-    expect(await trialInProject(fakeDeps({ commands: { 'pnpm test': { fail: '1 failed' } } }).deps)('/t.tgz', '/my/app').run()).toMatchObject({ tag: 'Left', left: '1 failed' });
-    expect(await trialInProject(fakeDeps({ copyFails: 'EACCES' }).deps)('/t.tgz', '/my/app').run()).toMatchObject({ tag: 'Left', left: 'EACCES' });
+    expect(await trialInProject(fakeDeps({ ...single, commands: { 'pnpm test': { fail: '1 failed' } } }).deps)('/t.tgz', '/my/app', 'pkg').run()).toMatchObject({ tag: 'Left', left: '1 failed' });
+    expect(await trialInProject(fakeDeps({ ...workspace, commands: { 'pnpm -r test': { fail: '2 failed' } } }).deps)('/t.tgz', '/my/ws', 'pkg').run()).toMatchObject({ tag: 'Left', left: '2 failed' });
+    expect(await trialInProject(fakeDeps({ copyFails: 'EACCES' }).deps)('/t.tgz', '/my/app', 'pkg').run()).toMatchObject({ tag: 'Left', left: 'EACCES' });
   });
 
   it('records a failed trial in the results', async () => {
-    const fake = fakeDeps({ commands: { 'pnpm test': { fail: '1 failed' } } });
+    const fake = fakeDeps({ ...single, commands: { 'pnpm test': { fail: '1 failed' } } });
     const p = scripted(['p', 'p', 'p', 'p', '/my/app', 'f', 'tests broke']);
     const results = await runChecks(fake.deps, p, evidence());
     expect(results[4]).toMatchObject({ verdict: 'fail', note: 'tests broke', findings: ['tests failed in /my/app'] });
