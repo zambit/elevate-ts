@@ -55,6 +55,16 @@ Run `pnpm release-check publish-commercial` (without `--publish`) locally to bui
 
 GitHub Packages does not record who downloads a package. Vendor access, and a per-vendor download log, will come through a separate registry proxy.
 
+## Who can access the commercial package
+
+- **Visibility:** private, with inherited access from the repository turned off. The repository is public and the org's base permission is `read`, so inheritance would let every org member install it.
+- **`zbt-admins` team:** Admin (manage, publish by hand if ever needed, delete).
+- **`zambit/elevate-ts` workflows:** Write, through "Manage Actions access", so the `publish-commercial` job can publish.
+- **Everyone else:** no access. Vendors will get access through the registry proxy, whose service account will read the package through a team of its own.
+
+Access is granted to teams only. The org audit log records team membership changes (`team.add_member`, `team.remove_member`) but not changes to a package's own access list, so granting access through
+teams keeps every change on record. The settings can only be changed on the package settings page; there is no API for them.
+
 ## Authentication
 
 - **npm (AGPL):** CI authenticates with npm trusted publishing (OIDC), bound to `publish.yml` and the `prod` GitHub environment. No npm token is stored in GitHub. The trusted publisher may only stage,

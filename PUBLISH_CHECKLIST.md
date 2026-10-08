@@ -107,11 +107,18 @@ The commercial flavor, `@zambit/elevate-ts-commercial`, is published privately t
 
 ### One-time setup
 
-- [ ] In `zambit/elevate-ts` → Settings → Environments, create `commercial` and add required reviewers.
-- [ ] After the first commercial publish, open the package under the org's Packages tab → Package settings, and:
-  - [ ] set visibility to **Private**;
-  - [ ] turn off inherited access from the repository, so the public repo does not grant read access;
-  - [ ] under "Manage Actions access", give `zambit/elevate-ts` the **Write** role, so later publishes from this workflow keep working.
+- [ ] In `zambit/elevate-ts` → Settings → Environments, create `commercial`, add required reviewers, and limit deployments to tags matching `@zambit/elevate-ts@*-commercial`.
+- [ ] After the first commercial publish, open the package under the org's Packages tab → Package settings, and in this order:
+  1. [ ] Untick **Inherit access from repository**. The org's base repository permission is `read`, so while this is on, every org member can install the commercial package. The access controls below
+         only appear once it is off.
+  2. [ ] Under **Manage Actions access**, add `zambit/elevate-ts` with the **Write** role. Without it, the next commercial publish fails.
+  3. [ ] Under **Manage access**, give `zbt-admins` the **Admin** role. Grant access to **teams only**: GitHub's audit log records team membership changes (`team.add_member`, `team.remove_member`) but
+         not changes to a package's own access list, so adding a person to the package directly leaves no record.
+  4. [ ] Leave visibility on **Private**.
+- [ ] In Org Settings → Packages → Default package settings, untick **Inherit access from source repository**, so new packages start locked down. Optionally, untick **Public** under Org Settings →
+      Member privileges → Package creation.
+
+There is no API for package access settings; they can only be changed, and checked, on the package settings page.
 
 ### Each release
 
@@ -265,20 +272,21 @@ Then fix the issue, add a new changeset, run `pnpm make-release` to produce a su
 
 ## Automation status
 
-| Part                   | Automated | Where                                                                    |
-| ---------------------- | --------- | ------------------------------------------------------------------------ |
-| Changeset capture      | manual    | Contributors add `.changeset/*.md` files in PRs                          |
-| Version bump           | yes       | `pnpm make-release` (local) → `changeset version`                        |
-| Changelog generation   | yes       | `pnpm make-release` → `changeset version` + `fix:changelog`              |
-| README badge sync      | yes       | `pnpm make-release` updates and verifies via `check:readme`              |
-| Release branch + PR    | yes       | `pnpm make-release` opens the PR via `gh` under your account             |
-| Git tagging            | manual    | After release PR merges, push `@zambit/elevate-ts@<VERSION>` by hand     |
-| Package smoke test     | yes       | `publish.yml` runs `pnpm release-check smoke` before staging             |
-| npm staging            | yes       | `publish.yml` on tag push, `npm stage publish` via trusted publishing    |
-| Staged release checks  | yes       | `pnpm release-check verify <VERSION>` (local, maintainer)                |
-| Human release review   | guided    | `pnpm release-check verify <VERSION> --review` or `check <TARBALL>`      |
-| npm approval (go live) | manual    | `npm stage approve <STAGE-ID>` with 2FA                                  |
-| GitHub Releases        | partial   | `publish.yml` creates a draft; publish it by hand after approving on npm |
+| Part                   | Automated | Where                                                                                           |
+| ---------------------- | --------- | ----------------------------------------------------------------------------------------------- |
+| Changeset capture      | manual    | Contributors add `.changeset/*.md` files in PRs                                                 |
+| Version bump           | yes       | `pnpm make-release` (local) → `changeset version`                                               |
+| Changelog generation   | yes       | `pnpm make-release` → `changeset version` + `fix:changelog`                                     |
+| README badge sync      | yes       | `pnpm make-release` updates and verifies via `check:readme`                                     |
+| Release branch + PR    | yes       | `pnpm make-release` opens the PR via `gh` under your account                                    |
+| Git tagging            | manual    | After release PR merges, push `@zambit/elevate-ts@<VERSION>` by hand                            |
+| Package smoke test     | yes       | `publish.yml` runs `pnpm release-check smoke` before staging                                    |
+| npm staging            | yes       | `publish.yml` on tag push, `npm stage publish` via trusted publishing                           |
+| Staged release checks  | yes       | `pnpm release-check verify <VERSION>` (local, maintainer)                                       |
+| Human release review   | guided    | `pnpm release-check verify <VERSION> --review` or `check <TARBALL>`                             |
+| npm approval (go live) | manual    | `npm stage approve <STAGE-ID>` with 2FA                                                         |
+| GitHub Releases        | partial   | `publish.yml` creates a draft; publish it by hand after approving on npm                        |
+| Commercial publish     | gated     | `publish-commercial` job on a `-commercial` tag, after the `commercial` environment is approved |
 
 ## See Also
 

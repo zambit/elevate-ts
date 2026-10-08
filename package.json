@@ -134,8 +134,6 @@
     "prepare": "husky install",
     "changeset": "changeset",
     "changeset:version": "changeset version",
-    "changeset:publish": "pnpm build && changeset publish",
-    "release": "pnpm changeset:version && pnpm changeset:publish",
     "prepublishOnly": "pnpm build && pnpm check:exports && pnpm test && pnpm lint:md && pnpm check:nodeps && pnpm check:readme"
   },
   "devDependencies": {
