@@ -26,7 +26,11 @@ const _ENCODER = Symbol('elevate-ts.schema.encoder');
  * user-defined schemas (plain functions) remain assignable as `Schema<T>`.
  */
 export type Schema<T> = ((input: unknown) => Validation.Validation<Issue, T>) & {
-  readonly [_ENCODER]?: (value: T) => unknown;
+  // A method signature on purpose: its parameter is checked bivariantly, so Schema<T>
+  // stays assignable to Schema<unknown> under strictFunctionTypes. A function-typed
+  // property here made object() and union() fail to compile in strict projects (0.8.0–0.9.0).
+  // The runtime property is still non-writable (see _make).
+  [_ENCODER]?(value: T): unknown;
 };
 
 /** Infer the success type of a Schema. */

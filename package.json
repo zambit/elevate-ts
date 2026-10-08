@@ -115,7 +115,7 @@
     "build": "rm -rf dist && tsc -p src/tsconfig.json && tsc -p tsconfig.esm.json && node scripts/generate-cjs-package.mjs",
     "test": "vitest run --coverage",
     "test:watch": "vitest",
-    "check:types": "tsc -p tsconfig.app.json --noEmit",
+    "check:types": "tsc -p src/tsconfig.json --noEmit && tsc -p tests/types/tsconfig.json",
     "lint:check": "eslint . --ext .ts --max-warnings 0",
     "lint": "eslint . --ext .ts --format=pretty",
     "lint:fix": "eslint . --ext .ts --fix",
