@@ -4,20 +4,22 @@ Project scripts live in [scripts/](../scripts/) and run through `pnpm`. They run
 
 ## release-check
 
-`pnpm release-check` smoke-tests, verifies and reviews release tarballs. It is a `commander` CLI in [scripts/release-check/](../scripts/release-check/). The behavior of each command is specified in
-Gherkin under [features/](../scripts/release-check/features/), the logic lives in `handlers/` and [scripts/lib/](../scripts/lib/), and `commands/` only wires options to handlers.
+`pnpm release-check` smoke-tests, verifies and reviews release tarballs, and builds the commercial flavor. It is a `commander` CLI in [scripts/release-check/](../scripts/release-check/). The behavior
+of each command is specified in Gherkin under [features/](../scripts/release-check/features/), the logic lives in `handlers/` and [scripts/lib/](../scripts/lib/), and `commands/` only wires options to
+handlers.
 
 ```bash
 pnpm release-check --help
 pnpm release-check <command> --help
 ```
 
-| Command                           | What it does                                                                                                                |
-| --------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| `check <tarball> [--out <file>]`  | The full check of a tarball: the smoke test, then the guided human review. Ends with the approve or reject command.         |
-| `smoke [tarball]`                 | Smoke test only. With no tarball it packs the current build with `pnpm pack` first (run `pnpm build` before).               |
-| `verify <version> [--review]`     | Verifies a version CI staged on npm: downloads the staged tarball, checks its shasum, smoke-tests it. Requires `npm login`. |
-| `review <tarball> [--out <file>]` | The guided human review on its own.                                                                                         |
+| Command                           | What it does                                                                                                                               |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `check <tarball> [--out <file>]`  | The full check of a tarball: the smoke test, then the guided human review. Ends with the approve or reject command.                        |
+| `smoke [tarball]`                 | Smoke test only. With no tarball it packs the current build with `pnpm pack` first (run `pnpm build` before).                              |
+| `verify <version> [--review]`     | Verifies a version CI staged on npm: downloads the staged tarball, checks its shasum, smoke-tests it. Requires `npm login`.                |
+| `review <tarball> [--out <file>]` | The guided human review on its own.                                                                                                        |
+| `publish-commercial [--publish]`  | Builds `@zambit/elevate-ts-commercial` from the current build and smoke-tests it. Publishes to GitHub Packages only with `--publish` (CI). |
 
 Every command exits `0` on success and `1` on failure. Nothing in `release-check` approves or rejects a staged release; it prints the command for you to run, because approving needs your 2FA.
 
@@ -39,6 +41,12 @@ Shows five checks, each with the evidence it gathered and any warnings, and asks
 
 It writes a review record to `reviews/releases/<version>.md` (or `--out`). See [TESTING_STAGED_RELEASES.md](./TESTING_STAGED_RELEASES.md) for the release procedure and troubleshooting.
 
+### Commercial build
+
+Packs the package, unpacks it in a temporary directory, renames it to `@zambit/elevate-ts-commercial`, replaces `LICENSE` with `COMMERCIAL-LICENSE.md`, points `publishConfig.registry` at GitHub
+Packages and drops lifecycle scripts, then packs and smoke-tests the result. The working tree is never modified. Without `--publish` it only prints what it built. The `publish-commercial` job in
+`publish.yml` runs it with `--publish` on a `-commercial` tag, after the `commercial` environment is approved. See [DUAL-PUBLISHING-STRATEGY.md](../DUAL-PUBLISHING-STRATEGY.md).
+
 ### Aliases
 
 The original script names still work: `pnpm smoke:package` is `release-check smoke`, `pnpm verify-staged` is `release-check verify`, and `pnpm review-tarball` is `release-check review`.
@@ -50,14 +58,13 @@ Handler and library tests live in [tests/scripts/](../tests/scripts/) and use in
 
 ## Other scripts
 
-| Script                                | Command                              | Purpose                                                                          |
-| ------------------------------------- | ------------------------------------ | -------------------------------------------------------------------------------- |
-| `make-release.mjs`                    | `pnpm make-release [--dry-run]`      | Prepares a release: version bump, CHANGELOG, README badge, release branch and PR |
-| `check-exports.mjs`                   | `pnpm check:exports`                 | Checks the `exports` map against the built files                                 |
-| `check-no-node-builtins.mjs`          | `pnpm check:nodeps`                  | Fails if a Node built-in import appears in the built ESM output (`dist/esm`)     |
-| `check-readme-version.mjs`            | `pnpm check:readme`                  | Fails if the README's npm badge does not match `package.json`                    |
-| `disambiguate-changelog-headings.mjs` | `pnpm fix:changelog`                 | Adds `(VERSION)` suffixes to CHANGELOG headings for markdownlint MD024           |
-| `generate-cjs-package.mjs`            | part of `pnpm build`                 | Writes `dist/cjs/package.json` so the CJS build loads as CommonJS                |
-| `publish-commercial.ts`               | `publish.yml` on a `-commercial` tag | Stages the commercial-license variant of a release                               |
+| Script                                | Command                         | Purpose                                                                          |
+| ------------------------------------- | ------------------------------- | -------------------------------------------------------------------------------- |
+| `make-release.mjs`                    | `pnpm make-release [--dry-run]` | Prepares a release: version bump, CHANGELOG, README badge, release branch and PR |
+| `check-exports.mjs`                   | `pnpm check:exports`            | Checks the `exports` map against the built files                                 |
+| `check-no-node-builtins.mjs`          | `pnpm check:nodeps`             | Fails if a Node built-in import appears in the built ESM output (`dist/esm`)     |
+| `check-readme-version.mjs`            | `pnpm check:readme`             | Fails if the README's npm badge does not match `package.json`                    |
+| `disambiguate-changelog-headings.mjs` | `pnpm fix:changelog`            | Adds `(VERSION)` suffixes to CHANGELOG headings for markdownlint MD024           |
+| `generate-cjs-package.mjs`            | part of `pnpm build`            | Writes `dist/cjs/package.json` so the CJS build loads as CommonJS                |
 
 See [PUBLISH_CHECKLIST.md](../PUBLISH_CHECKLIST.md) for how these fit into a release.

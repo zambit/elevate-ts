@@ -78,8 +78,7 @@ git push origin '@zambit/elevate-ts@<VERSION>'
 3. `npm stage publish --provenance` — stages the release on npm (authenticated by npm trusted publishing, no token; defaults to the `latest` dist-tag). The version is **not** installable yet.
 4. Creates a **draft** GitHub Release for the tag
 
-For a **commercial** publish, suffix the tag with `-commercial`: `@zambit/elevate-ts@<VERSION>-commercial`. `publish.yml` routes that to the commercial-publish script, which also stages rather than
-publishes.
+The commercial flavor has its own tag and job; see [Commercial release](#commercial-release).
 
 ### Step 5 — Verify and approve the staged release
 
@@ -100,6 +99,33 @@ The full procedure, the manual fallback, and what to do when a check fails are i
 ### Step 6 — Publish the draft GitHub Release
 
 Open the draft at [github.com/zambit/elevate-ts/releases](https://github.com/zambit/elevate-ts/releases), paste the version's `CHANGELOG.md` entry as the notes if it is empty, and publish it.
+
+## Commercial release
+
+The commercial flavor, `@zambit/elevate-ts-commercial`, is published privately to GitHub Packages from the same commit as the AGPL release. See
+[DUAL-PUBLISHING-STRATEGY.md](./DUAL-PUBLISHING-STRATEGY.md) for how it is built.
+
+### One-time setup
+
+- [ ] In `zambit/elevate-ts` → Settings → Environments, create `commercial` and add required reviewers.
+- [ ] After the first commercial publish, open the package under the org's Packages tab → Package settings, and:
+  - [ ] set visibility to **Private**;
+  - [ ] turn off inherited access from the repository, so the public repo does not grant read access;
+  - [ ] under "Manage Actions access", give `zambit/elevate-ts` the **Write** role, so later publishes from this workflow keep working.
+
+### Each release
+
+1. Once the AGPL release is approved and live, tag the same commit and push:
+
+   ```bash
+   git tag '@zambit/elevate-ts@<VERSION>-commercial' '@zambit/elevate-ts@<VERSION>'
+   git push origin '@zambit/elevate-ts@<VERSION>-commercial'
+   ```
+
+2. Approve the waiting `commercial` deployment in the workflow run.
+3. Check the package version under the org's Packages tab, and that the org audit log shows `packages.package_version_published` for it.
+
+To inspect the commercial tarball without publishing, run `pnpm build && pnpm release-check publish-commercial` locally.
 
 ## Pre-Publication Checklist
 

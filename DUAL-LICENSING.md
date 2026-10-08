@@ -1,86 +1,32 @@
 # Dual Licensing Guide
 
-elevate-ts is available under two complementary licenses:
+elevate-ts is available under two licenses. The code is the same; the license, and where you get the package, differ.
 
 ## AGPL-3.0 (Open Source)
 
-**For:** Open source projects, research, educational use
+**For:** open source projects, research and educational use.
 
 ```bash
-npm install @zambit/elevate-ts@agpl
+pnpm add @zambit/elevate-ts
 ```
 
-- **Cost:** Free
-- **Requirements:** If you modify elevate-ts, you must share your improvements under AGPL-3.0
-- **License:** [LICENSE](./LICENSE) — GNU Affero General Public License v3.0 or later
+- **Cost:** free
+- **Requirements:** if you modify elevate-ts, or offer software that uses it over a network, you must share the source under AGPL-3.0
+- **License:** [LICENSE](./LICENSE), the GNU Affero General Public License v3.0 or later
 
 ## Commercial License
 
-**For:** Proprietary, closed-source, or commercial projects
+**For:** proprietary, closed-source or commercial projects.
 
-```bash
-npm install @zambit/elevate-ts@commercial
-```
+Commercial customers install `@zambit/elevate-ts-commercial`, a private package with the same code and version numbers, licensed under the commercial terms. Zambit provides access details with the
+license.
 
-- **Cost:** Contact us for pricing
-- **Requirements:** No sharing required. Use in proprietary products without restrictions
+- **Cost:** contact us for pricing
+- **Requirements:** no obligation to share your source
 - **License:** [COMMERCIAL-LICENSE.md](./COMMERCIAL-LICENSE.md)
 
 **Contact:** [sales@zambit.com](mailto:sales@zambit.com)
 
----
+## Publishing
 
-## Publishing Workflow
-
-Both versions are published to npm under the same version number with different dist-tags.
-
-### Publish AGPL Version
-
-```bash
-git tag v1.0.0
-git push --tags
-```
-
-GitHub Actions automatically publishes with the `agpl` tag.
-
-### Publish Commercial Version
-
-```bash
-git tag v1.0.0-commercial
-git push --tags
-```
-
-GitHub Actions automatically publishes with the `commercial` tag.
-
-### Local Testing
-
-```bash
-# Verify AGPL package excludes commercial license
-npm pack
-tar tzf elevate-ts-0.1.0.tgz | grep COMMERCIAL  # Should return nothing
-
-# Dry-run commercial publish (review what would be published)
-npm run publish:commercial --dry-run  # Note: npm may not support --dry-run on custom scripts
-```
-
----
-
-## How It Works
-
-1. **Source Repository:** Contains both LICENSE (AGPL) and COMMERCIAL-LICENSE.md
-2. **npm AGPL Tag:** `.npmignore` excludes COMMERCIAL-LICENSE.md → users see only AGPL
-3. **npm Commercial Tag:** Publishing script swaps LICENSE files temporarily, publishes, restores
-4. **User Installation:** They choose which tag to install based on their use case
-
----
-
-## Compliance
-
-- ✅ Both licenses available in source repo (transparency)
-- ✅ Separate dist-tags on npm (easy to identify which version you have)
-- ✅ AGPL compliance through proper file organization and licensing headers
-- ✅ Commercial terms clear and enforceable through version tagging
-
----
-
-For detailed legal and technical implementation details, see [COMMERCIAL-LICENSE.md](./COMMERCIAL-LICENSE.md).
+How each flavor is built and published is described in [DUAL-PUBLISHING-STRATEGY.md](./DUAL-PUBLISHING-STRATEGY.md).

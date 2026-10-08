@@ -5,6 +5,9 @@ installed by name until a maintainer approves it with 2FA. This page covers test
 
 For the end-to-end release process, see [PUBLISH_CHECKLIST.md](../PUBLISH_CHECKLIST.md).
 
+> [NOTE] This page covers the AGPL package on npm. The commercial flavor is published to GitHub Packages, which has no staging; its gate is the `commercial` environment approval. See
+> [PUBLISH_CHECKLIST.md](../PUBLISH_CHECKLIST.md#commercial-release).
+
 ## Prerequisites
 
 - You are a maintainer of `@zambit/elevate-ts` on npm, with 2FA enabled.
