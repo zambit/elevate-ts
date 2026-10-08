@@ -1,571 +1,73 @@
 # Dual Publishing Strategy
 
-This document outlines how elevate-ts publishes to two separate registries with different licenses.
+elevate-ts is dual-licensed: AGPL-3.0-or-later for everyone, and a commercial license from Zambit for closed-source use. This document describes how each flavor is published.
 
 ## Overview
 
-```text
-npm org: elevate-ts (under mlhamatzbt)
-GitHub org: zambit
-GitHub repo: zambit/elevate-ts (public)
-```
+|                 | AGPL                                   | Commercial                                              |
+| --------------- | -------------------------------------- | ------------------------------------------------------- |
+| Package         | `@zambit/elevate-ts`                   | `@zambit/elevate-ts-commercial`                         |
+| Registry        | npmjs.org (public)                     | GitHub Packages, `https://npm.pkg.github.com` (private) |
+| `license` field | `AGPL-3.0-or-later`                    | `SEE LICENSE IN LICENSE`                                |
+| `LICENSE` file  | AGPL-3.0 text                          | Contents of `COMMERCIAL-LICENSE.md`                     |
+| Git tag         | `@zambit/elevate-ts@<version>`         | `@zambit/elevate-ts@<version>-commercial`               |
+| Approval        | `npm stage approve` with 2FA           | Required reviewers on the `commercial` environment      |
+| Published by    | `npm stage publish --provenance` in CI | `pnpm release-check publish-commercial --publish` in CI |
 
-### AGPL Version
+Both flavors are built from the same commit and contain the same code, at the same version number. They differ only in the package name, the license metadata and the `LICENSE` file. The commercial
+grant itself comes from the agreement with Zambit. See [COMMERCIAL-LICENSE.md](./COMMERCIAL-LICENSE.md).
 
-- Package: `elevate-ts` (unscoped, public)
-- Registry: npmjs.org
-- Anyone can download
+## AGPL release
 
-### Commercial Version
+Releases are prepared locally and staged by CI. Nothing goes live until a maintainer approves it with 2FA.
 
-- Package: `@zambit/elevate-ts-commercial` (scoped to GitHub)
-- Registry: GitHub Packages (private)
-- Only org members with GitHub auth can download
+1. Contributors add changesets during development (`pnpm changeset`).
+2. A maintainer runs `pnpm make-release`, which bumps the version, updates `CHANGELOG.md` and opens a release PR.
+3. After the PR merges, the maintainer pushes the tag `@zambit/elevate-ts@<version>`.
+4. `.github/workflows/publish.yml` builds, tests, smoke-tests the packed tarball and **stages** the release on npm. It also creates a draft GitHub Release.
+5. The maintainer verifies the staged tarball with `pnpm release-check verify <version> --review`.
+6. The maintainer runs `npm stage approve <stage-id>` (2FA). The version goes live.
+7. The maintainer publishes the draft GitHub Release.
 
----
+Full procedures: [PUBLISH_CHECKLIST.md](./PUBLISH_CHECKLIST.md) and [docs/TESTING_STAGED_RELEASES.md](./docs/TESTING_STAGED_RELEASES.md).
 
-## Part 1: Changes on Publish Side
+## Commercial release
 
-### A. Update `package.json`
+After the AGPL release is live, the maintainer pushes `@zambit/elevate-ts@<version>-commercial` on the same commit. The `publish-commercial` job in `publish.yml`:
 
-```json
-{
-  "name": "elevate-ts",
-  "version": "0.1.2",
-  "description": "Functional programming library for TypeScript. Available under AGPL-3.0 or Commercial License.",
-  "license": "AGPL-3.0-or-later",
-  "type": "module",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/zambit/elevate-ts.git"
-  },
-  "homepage": "https://github.com/zambit/elevate-ts",
-  "publishConfig": {
-    "access": "public",
-    "registry": "https://registry.npmjs.org"
-  },
-  "scripts": {
-    "publish:agpl": "npm publish --registry https://registry.npmjs.org",
-    "publish:commercial": "tsx scripts/publish-commercial.ts",
-    "prepublishOnly": "pnpm build && pnpm test && pnpm lint:md && pnpm check:nodeps"
-  }
-}
-```
+1. Waits for a required reviewer to approve the `commercial` environment. GitHub Packages has no staging, so this approval is the gate.
+2. Builds, tests and runs `pnpm release-check publish-commercial --publish`, which:
+   - packs the package and unpacks it in a temporary directory, so the working tree is never changed;
+   - renames it to `@zambit/elevate-ts-commercial`, sets the license fields, drops lifecycle scripts and points `publishConfig.registry` at GitHub Packages;
+   - replaces `LICENSE` with `COMMERCIAL-LICENSE.md`;
+   - packs it again, smoke-tests every entry point under ESM and CJS, and publishes it.
 
-Key changes:
+Run `pnpm release-check publish-commercial` (without `--publish`) locally to build and inspect the commercial tarball without publishing it.
 
-- `"name": "elevate-ts"` (unscoped, discoverable)
-- `"registry"` explicitly set to npmjs.org
-- `"publish:agpl"` script added
+## Audit trail
 
-### B. Create `.npmrc` in repo root (for CI/CD)
+| Event                                 | Where it is recorded                                                             |
+| ------------------------------------- | -------------------------------------------------------------------------------- |
+| Commercial version published          | Org audit log: `packages.package_version_published` (actor, time, version)       |
+| Commercial version or package deleted | Org audit log: `packages.package_version_deleted`, `packages.package_deleted`    |
+| Who approved a commercial publish     | The workflow run's deployment review history for the `commercial` environment    |
+| AGPL version approved                 | npm (the 2FA approval), and the review record in `reviews/releases/<version>.md` |
 
-```text
-# NPM public registry (for AGPL publishes)
-registry=https://registry.npmjs.org
+GitHub Packages does not record who downloads a package. Vendor access, and a per-vendor download log, will come through a separate registry proxy.
 
-# GitHub Packages registry (for commercial publishes)
-@zambit:registry=https://npm.pkg.github.com
-```
+## Authentication
 
-### C. Update `scripts/publish-commercial.ts`
+- **npm (AGPL):** CI authenticates with npm trusted publishing (OIDC), bound to `publish.yml` and the `prod` GitHub environment. No npm token is stored in GitHub. The trusted publisher may only stage,
+  and the package requires 2FA for publishing, so approval always stays with a maintainer.
+- **GitHub Packages (commercial):** the job's built-in `GITHUB_TOKEN` with `packages: write`. No personal access token is involved in publishing.
+- **GitHub Release:** the AGPL job's `GITHUB_TOKEN` with `contents: write` creates the draft release.
 
-This script swaps the package name and LICENSE file, then publishes to GitHub Packages.
-
-```typescript
-#!/usr/bin/env node
-
-/**
- * Publish commercial version to GitHub Packages.
- *
- * 1. Updates package.json name to @zambit/elevate-ts-commercial
- * 2. Swaps LICENSE (AGPL → commercial)
- * 3. Publishes to GitHub Packages registry
- * 4. Restores everything
- */
-
-import { readFileSync, writeFileSync } from 'fs';
-import { execSync } from 'child_process';
-
-const pkgPath = 'package.json';
-const licensePath = 'LICENSE';
-const agplBackupPath = 'LICENSE.agpl';
-const commercialLicensePath = 'COMMERCIAL-LICENSE.md';
-
-const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8'));
-const originalName = pkg.name;
-const originalLicense = pkg.license;
-
-console.log('Publishing commercial version to GitHub Packages...');
-
-try {
-  // Update package
-  pkg.name = '@zambit/elevate-ts-commercial';
-  pkg.license = 'SEE COMMERCIAL-LICENSE.md';
-  writeFileSync(pkgPath, JSON.stringify(pkg, null, 2));
-
-  // Swap licenses
-  execSync(`mv ${licensePath} ${agplBackupPath}`);
-  execSync(`cp ${commercialLicensePath} ${licensePath}`);
-
-  // Publish to GitHub Packages
-  execSync('npm publish --registry https://npm.pkg.github.com', { stdio: 'inherit' });
-  console.log('Commercial version published to GitHub Packages!');
-} catch (error) {
-  console.error('Error:', error.message);
-  process.exit(1);
-} finally {
-  // Restore
-  pkg.name = originalName;
-  pkg.license = originalLicense;
-  writeFileSync(pkgPath, JSON.stringify(pkg, null, 2));
-
-  execSync(`rm ${licensePath}`);
-  execSync(`mv ${agplBackupPath} ${licensePath}`);
-}
-```
-
-### D. Update `.github/workflows/publish.yml`
-
-```yaml
-name: Publish
-
-on:
-  push:
-    tags:
-      - 'v*'
-
-jobs:
-  publish:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '24'
-
-      - run: pnpm install
-      - run: pnpm build
-      - run: pnpm test
-
-      # Determine which version to publish
-      - name: Determine License
-        id: license
-        run: |
-          TAG=${{ github.ref_name }}
-          if [[ $TAG == *"-commercial" ]]; then
-            echo "type=commercial" >> $GITHUB_OUTPUT
-          else
-            echo "type=agpl" >> $GITHUB_OUTPUT
-          fi
-
-      # Publish AGPL to npmjs.org
-      - name: Publish AGPL to npm
-        if: steps.license.outputs.type == 'agpl'
-        run: npm publish --registry https://registry.npmjs.org
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-      # Publish Commercial to GitHub Packages
-      - name: Publish Commercial to GitHub Packages
-        if: steps.license.outputs.type == 'commercial'
-        run: pnpm publish:commercial
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-```
-
----
-
-## Part 2: Changes to Documentation
-
-### A. Update `README.md`
-
-````markdown
-# elevate-ts
-
-Point-free, data-last functional programming for TypeScript.
-
-## Installation
-
-### AGPL-3.0 (Free, Open Source)
-
-```bash
-npm install elevate-ts
-```
-````
-
-See [LICENSE](./LICENSE) for terms. You must share modifications under AGPL-3.0.
-
-### Commercial License (Proprietary Use)
-
-```bash
-npm install @zambit/elevate-ts-commercial --registry=https://npm.pkg.github.com
-```
-
-See [COMMERCIAL-LICENSE.md](./COMMERCIAL-LICENSE.md) and [COMMERCIAL_ACCESS.md](./COMMERCIAL_ACCESS.md) for setup and terms.
-
-## Quick Start
-
-```typescript
-import { pipe } from 'elevate-ts/Function';
-import { Just, map, chain } from 'elevate-ts/Maybe';
-```
-
-### B. Create `COMMERCIAL_ACCESS.md`
-
-````markdown
-# Commercial Package Access
-
-This guide explains how to install `@zambit/elevate-ts-commercial` from GitHub Packages.
-
-## Prerequisites
-
-- A GitHub account with access to the Zambit org
-- An npm account (optional, but recommended)
-
-## Step 1: Get Your Token
-
-Ask Zambit for a GitHub personal access token. It looks like:
-
-```text
-ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-```
-````
-
-Or create your own:
-
-1. GitHub.com → Settings → Developer settings → Personal access tokens
-2. Generate new token (classic)
-3. Scopes: `read:packages`
-
-## Step 2: Configure npm
-
-Add to your `~/.npmrc`:
-
-```text
-@zambit:registry=https://npm.pkg.github.com
-//npm.pkg.github.com/:_authToken=ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-```
-
-### Multiple Organizations
-
-If you use packages from multiple orgs:
-
-```text
-# Zambit commercial packages
-@zambit:registry=https://npm.pkg.github.com
-//npm.pkg.github.com/:_authToken=ghp_zambit_xxxxx
-
-# Other orgs
-@acme:registry=https://npm.pkg.github.com
-//npm.pkg.github.com/:_authToken=ghp_acme_xxxxx
-
-# Public npm (default)
-registry=https://registry.npmjs.org
-```
-
-## Step 3: Install
-
-```bash
-npm install @zambit/elevate-ts-commercial
-```
-
-## CI/CD Setup
-
-### GitHub Actions
-
-```yaml
-- name: Install dependencies
-  run: npm install
-  env:
-    NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-```
-
-### Docker
-
-```dockerfile
-ARG GITHUB_TOKEN
-RUN echo "@zambit:registry=https://npm.pkg.github.com" >> ~/.npmrc && \
-    echo "//npm.pkg.github.com/:_authToken=$GITHUB_TOKEN" >> ~/.npmrc && \
-    npm install
-```
-
-Build with:
-
-```bash
-docker build --build-arg GITHUB_TOKEN=ghp_xxx -t myapp .
-```
-
-## Troubleshooting
-
-### Error: 404 Not Found
-
-**Cause:** npm can't find the package or you don't have access.
-
-**Fix:**
-
-- Verify you have GitHub access to the Zambit org
-- Confirm token is valid: `npm view @zambit/elevate-ts-commercial --registry=https://npm.pkg.github.com`
-- Check `.npmrc` is correct: `cat ~/.npmrc`
-
-### Error: 401 Unauthorized
-
-**Cause:** Token expired or invalid.
-
-**Fix:**
-
-- Create new token at GitHub.com → Settings → Developer settings → Personal access tokens
-- Update `~/.npmrc` with new token
-- Run `npm cache clean --force`
-
-### Error: ENOENT: no such file or directory
-
-**Cause:** `.npmrc` configuration missing or incorrect.
-
-**Fix:**
-
-- Make sure `@zambit:registry` is set in `~/.npmrc`
-- Run `npm cache clean --force`
-- Try again
-
-## Support
-
-Contact: [support@zambit.com](mailto:support@zambit.com)
-
-### C. Update `PUBLISH_CHECKLIST.md`
-
-Add this section:
-
-````markdown
-## Publishing Flow
-
-### AGPL Version
-
-```bash
-git tag v1.0.0      # Triggers publish to npmjs.org
-git push --tags
-```
-````
-
-GitHub Actions automatically:
-
-1. Detects tag `v1.0.0` (no `-commercial` suffix)
-2. Publishes to npmjs.org
-3. Creates GitHub Release
-
-Verify:
-
-```bash
-npm view elevate-ts
-npm search elevate-ts
-```
-
-### Step 3B: Publish Commercial
-
-```bash
-git tag v1.0.0-commercial   # Triggers publish to GitHub Packages
-git push --tags
-```
-
-GitHub Actions automatically:
-
-1. Detects tag with `-commercial` suffix
-2. Publishes to GitHub Packages
-3. Creates GitHub Release
-
-Verify (with GitHub auth):
-
-```bash
-npm view @zambit/elevate-ts-commercial --registry=https://npm.pkg.github.com
-```
-
----
-
-## Part 3: Complete Publishing Workflow
-
-### Step 1: Create Changeset (during development)
-
-During development, document changes with changesets:
-
-```bash
-pnpm changeset
-```
-
-Follow prompts:
-
-- Select: `elevate-ts`
-- Select: `patch` (bug fix), `minor` (feature), or `major` (breaking)
-- Write description
-
-This creates a file in `.changeset/` with your change details.
-
-### Step 2: Merge to Main
-
-When ready to release, create PR and merge `initial` → `main`:
-
-```bash
-git push origin initial
-# Create PR on GitHub (initial → main)
-# Have reviewer approve
-# Merge
-```
-
-### Step 3A: Publish AGPL (Public to npmjs.org)
-
-After merge to main, create and push git tag:
-
-```bash
-# Pull main locally
-git checkout main
-git pull origin main
-
-# Check current version in package.json
-cat package.json | grep version
-
-# Create and push tag
-git tag v0.1.2
-git push origin v0.1.2
-```
-
-**GitHub Actions automatically:**
-
-1. Detects tag `v0.1.2` (no `-commercial` suffix)
-2. Runs: `npm publish --registry https://registry.npmjs.org`
-3. Uses `NPM_TOKEN` secret for authentication
-4. Creates GitHub Release
-5. Done ✅
-
-**Verify publication:**
-
-```bash
-npm view elevate-ts
-npm install elevate-ts  # Test it locally
-```
-
-### Step 3B: Publish Commercial (Optional, to GitHub Packages)
-
-If you want to release a commercial version alongside AGPL:
-
-```bash
-git tag v0.1.2-commercial
-git push origin v0.1.2-commercial
-```
-
-**GitHub Actions automatically:**
-
-1. Detects tag with `-commercial` suffix
-2. Runs: `pnpm publish:commercial`
-   - Updates package name to `@zambit/elevate-ts-commercial`
-   - Swaps LICENSE files
-   - Publishes to GitHub Packages
-3. Uses `GITHUB_TOKEN` (automatic)
-4. Creates GitHub Release
-5. Restores original state
-6. Done ✅
-
-**Verify publication (with GitHub auth):**
-
-```bash
-npm view @zambit/elevate-ts-commercial --registry=https://npm.pkg.github.com
-```
-
----
-
-## Part 4: Environment Setup for CI/CD
-
-### NPM_TOKEN (for npmjs.org publishing)
-
-1. Log into npm.com
-2. Go to your profile → **Access Tokens**
-3. Click **Generate new token**
-4. Choose **Granular access token**
-5. Permissions:
-   - `publish:packages` (required)
-   - Scoped to `elevate-ts` package
-   - Expiration: 1 year
-6. Copy the token
-7. In GitHub repo → Settings → **Secrets and variables** → **Actions**
-8. Create secret: `NPM_TOKEN` = (paste token)
-
-### GITHUB_TOKEN (automatic)
-
-GitHub Actions provides `${{ secrets.GITHUB_TOKEN }}` automatically. No setup needed.
-
-It has permission to publish to GitHub Packages by default.
-
----
-
-## Part 5: Summary
-
-| Aspect          | AGPL             | Commercial                      |
-| --------------- | ---------------- | ------------------------------- |
-| Package name    | `elevate-ts`     | `@zambit/elevate-ts-commercial` |
-| Registry        | npmjs.org        | GitHub Packages                 |
-| Git tag pattern | `v1.0.0`         | `v1.0.0-commercial`             |
-| Public?         | Yes              | No (GitHub auth required)       |
-| Discovery       | Visible on npmjs | GitHub Packages only            |
-| License file    | AGPL-3.0         | Commercial License              |
-| Authentication  | None (public)    | GitHub token                    |
-| Automation      | GitHub Actions   | GitHub Actions                  |
-
----
-
-## Publish Troubleshooting
-
-### Publish fails: 404 Not Found
-
-**AGPL:**
-
-- Check `NPM_TOKEN` is set correctly in GitHub secrets
-- Verify you have publish rights to `elevate-ts` on npmjs
-
-**Commercial:**
-
-- Verify you have publish rights to `@zambit` org on GitHub Packages
-- Check GitHub Packages is enabled in org settings
-
-### Publish fails: "Already exists"
-
-You can only publish each version once per registry. Solutions:
-
-1. Bump version in `package.json`
-2. Create new changeset: `pnpm changeset`
-3. Merge and retag
-
-Or, within 24 hours, unpublish and retry:
-
-```bash
-npm unpublish elevate-ts@0.1.2 --force
-npm publish
-```
-
-### Can't install commercial version
-
-#### Installation: 404 Not Found
-
-- Verify GitHub token is valid
-- Verify `@zambit:registry` is in `.npmrc`
-
-#### Installation: 401 Unauthorized
-
-- GitHub token expired or incorrect
-- Create new token at GitHub.com → Settings → Developer settings
-
-### Both AGPL and commercial published same version
-
-This is fine. They have different package names:
-
-- `elevate-ts` on npmjs
-- `@zambit/elevate-ts-commercial` on GitHub Packages
-
-Both can exist at v0.1.2 simultaneously.
-
----
+Renaming `publish.yml` or the `prod` environment breaks AGPL publishing until the trusted publisher on npmjs.com is updated to match.
 
 ## See Also
 
-- [COMMERCIAL_ACCESS.md](./COMMERCIAL_ACCESS.md) — Setup instructions for clients
-- [COMMERCIAL-LICENSE.md](./COMMERCIAL-LICENSE.md) — Commercial license terms
-- `.github/workflows/publish.yml` — Automated publishing workflow
-- `scripts/publish-commercial.ts` — Commercial package publishing script
+- [COMMERCIAL-LICENSE.md](./COMMERCIAL-LICENSE.md): commercial license terms
+- [DUAL-LICENSING.md](./DUAL-LICENSING.md): which license to choose
+- [PUBLISH_CHECKLIST.md](./PUBLISH_CHECKLIST.md): the release process step by step, including the one-time commercial setup
+- [docs/TESTING_STAGED_RELEASES.md](./docs/TESTING_STAGED_RELEASES.md): verifying and approving a staged release
+- [docs/TOOLING.md](./docs/TOOLING.md): `make-release` and `release-check`
