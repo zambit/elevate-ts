@@ -4,14 +4,15 @@ on:
   push:
     tags:
       # Matches what `changeset publish` creates by default (and what 0.4.x / 0.5.x used).
-      # Commercial publishes use the same prefix with a `-commercial` suffix,
-      # which is detected below via the existing endsWith check on github.ref.
+      # A `-commercial` suffix (`@zambit/elevate-ts@<version>-commercial`) runs the
+      # publish-commercial job instead of the npm one.
       - '@zambit/elevate-ts@*'
 
 jobs:
   publish:
     runs-on: ubuntu-latest
     name: Publish to npm
+    if: ${{ !endsWith(github.ref, '-commercial') }}
     # npm authenticates this job via trusted publishing (OIDC), which is bound
     # to this workflow file and the `prod` environment. Renaming either breaks
     # publishing until the trusted publisher on npmjs.com is updated. The
@@ -50,28 +51,13 @@ jobs:
       - name: Smoke-test the packed package
         run: pnpm release-check smoke
 
-      - name: Determine license (AGPL vs Commercial)
-        id: license
-        run: |
-          TAG="${{ github.ref }}"
-          if [[ $TAG == *"-commercial" ]]; then
-            echo "type=commercial" >> $GITHUB_OUTPUT
-          else
-            echo "type=agpl" >> $GITHUB_OUTPUT
-          fi
-
       - name: Publish AGPL version
-        if: steps.license.outputs.type == 'agpl'
         # Stages the release; it is NOT live until a maintainer runs
         # `npm stage approve <id>` with 2FA. See docs/TESTING_STAGED_RELEASES.md.
         # Authenticates via npm trusted publishing (OIDC); no token needed.
         # No explicit --tag — npm defaults to `latest`, so the npmjs.com page
         # and plain `npm install @zambit/elevate-ts` track each release.
         run: npm stage publish --provenance
-
-      - name: Publish Commercial version
-        if: steps.license.outputs.type == 'commercial'
-        run: pnpm exec tsx scripts/publish-commercial.ts
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v3
@@ -84,3 +70,44 @@ jobs:
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  publish-commercial:
+    runs-on: ubuntu-latest
+    name: Publish commercial to GitHub Packages
+    if: ${{ endsWith(github.ref, '-commercial') }}
+    # Publishes @zambit/elevate-ts-commercial (private) to GitHub Packages. That registry
+    # has no staging, so the `commercial` environment's required reviewers are the
+    # approval gate; the run records who approved, and the org audit log records the
+    # publish (packages.package_version_published). See DUAL-PUBLISHING-STRATEGY.md.
+    environment: commercial
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm
+          registry-url: 'https://npm.pkg.github.com'
+          scope: '@zambit'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
+
+      - name: Run tests
+        run: pnpm test
+
+      # Builds the commercial tarball in a temp dir (renamed, commercial LICENSE),
+      # smoke-tests it under ESM and CJS, then publishes it.
+      - name: Publish commercial version
+        run: pnpm release-check publish-commercial --publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

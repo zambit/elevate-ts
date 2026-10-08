@@ -136,8 +136,6 @@
     "changeset:version": "changeset version",
     "changeset:publish": "pnpm build && changeset publish",
     "release": "pnpm changeset:version && pnpm changeset:publish",
-    "publish:agpl": "npm publish --tag agpl",
-    "publish:commercial": "tsx scripts/publish-commercial.ts",
     "prepublishOnly": "pnpm build && pnpm check:exports && pnpm test && pnpm lint:md && pnpm check:nodeps && pnpm check:readme"
   },
   "devDependencies": {
