@@ -1,9 +1,20 @@
 // Shared terminal output for release-check commands.
 
+import { GITHUB_PACKAGES, type CommercialReport } from '../../lib/commercial.js';
 import type { StagedReport } from '../../lib/release.js';
 import type { SmokeReport } from '../../lib/smoke.js';
 
 export const smokeLine = (r: SmokeReport): string => `[release-check] smoke OK: ${r.name}@${r.version}, ${r.entryPoints} entry points load under ESM and CJS`;
+
+export const commercialReport = (r: CommercialReport): string =>
+  [
+    `[release-check] commercial ${r.published ? 'published' : 'built'}: ${r.name}@${r.version}`,
+    `  registry:   ${GITHUB_PACKAGES}`,
+    `  tarball:    ${r.tarball}`,
+    `  files:      ${r.files.length}`,
+    '  smoke test: every entry point loads under ESM and CJS',
+    ...(r.published ? [] : ['', 'Dry run: nothing was published. CI publishes with --publish after the commercial environment is approved.'])
+  ].join('\n');
 
 export const fail = (message: string): void => {
   console.error(`[release-check] FAIL: ${message}`);
